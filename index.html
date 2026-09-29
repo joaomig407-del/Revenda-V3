@@ -43,7 +43,7 @@ input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--bd);bo
 </style></head><body><div id="app"></div>
 <script>
 /* ====== CONFIGURE AQUI (Supabase > Project Settings > API) ====== */
-const SUPABASE_URL='COLE_A_PROJECT_URL_AQUI', SUPABASE_KEY='COLE_A_ANON_PUBLIC_KEY_AQUI';
+const SUPABASE_URL='https://lnetdehrdbduhibuwgiz.supabase.co', SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuZXRkZWhyZGJkdWhpYnV3Z2l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MTk4MDgsImV4cCI6MjEwNjE5NTgwOH0.dzpYwnP5F-KZIOEe_H-C_99BiV6oX4fD0xEKnScc6gk';
 /* ================================================================ */
 const $=s=>document.querySelector(s),R=n=>'R$ '+Number(n).toFixed(2).replace('.',','),E=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
