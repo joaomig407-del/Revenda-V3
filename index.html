@@ -3,6 +3,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Portal do Revendedor</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root{--bg:#f4f5fb;--card:#fff;--tx:#191b2a;--mu:#6b7085;--ac:#7c5cff;--ac2:#ff6bb5;--bd:#e4e6f2;--ok:#16a34a;--rd:#e5484d}
 @media(prefers-color-scheme:dark){:root{--bg:#0e0f1a;--card:#171930;--tx:#eef0ff;--mu:#9a9fc0;--bd:#262a4a}}
@@ -42,11 +43,11 @@ input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--bd);bo
 </style></head><body><div id="app"></div>
 <script>
 /* ====== CONFIGURE AQUI (Supabase > Project Settings > API) ====== */
-const SUPABASE_URL='https://rngylwfuhgmclexvfqiy.supabase.co', SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuZ3lsd2Z1aGdtY2xleHZmcWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MzUwMTUsImV4cCI6MjEwNjIxMTAxNX0.LbYlRCXCvPQOtwiid27ZNDs8eXVKSWvv8OOR1oBMPPk';
+const SUPABASE_URL='COLE_A_PROJECT_URL_AQUI', SUPABASE_KEY='COLE_A_ANON_PUBLIC_KEY_AQUI';
 /* ================================================================ */
 const $=s=>document.querySelector(s),R=n=>'R$ '+Number(n).toFixed(2).replace('.',','),E=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let me=null,P=[],U=[],O=[],cart=[],cat='Todos',q='',atab='dash',pfile=null,oemail='',ost='todos';
+let me=null,P=[],U=[],O=[],cart=[],cat='Todos',q='',atab='dash',pfile=null,oemail='',ost='todos',xa=new Date().toLocaleDateString('sv-SE'),xb=xa;
 const err=e=>{if(e){alert(e.message);return true}};
 const dt=s=>new Date(s).toLocaleDateString('pt-BR');
 async function load(){
@@ -82,7 +83,7 @@ const hdr=t=>`<header><span class="g" style="border-radius:10px;padding:5px 8px"
 /* ---------- ADMIN ---------- */
 function adminV(){const tot=O.reduce((a,o)=>a+Number(o.total),0),T=[['dash','📊 Painel'],['prod','📦 Produtos'],['rev','👥 Revendedores'],['ped','🧾 Pedidos']];let b='';
  if(atab=='dash')b=`<div class="stats"><div class="stat g"><b>${P.length}</b>Produtos</div><div class="stat" style="background:#0ea5e9"><b>${U.filter(u=>u.role=='rev'&&u.status=='active').length}</b>Revendedores</div><div class="stat" style="background:#f59e0b"><b>${U.filter(u=>u.status=='pending').length}</b>Pendentes</div><div class="stat" style="background:#16a34a"><b>${R(tot)}</b>${O.length} pedidos</div></div><div class="card"><b>Bem-vindo, chefe 👑</b><p class="mu">Gerencie produtos, preços, fotos e quem participa da revenda.</p></div>`;
- if(atab=='prod')b=`<button class="btn p" onclick="pedit()">+ Novo produto</button><div class="grid" style="margin-top:12px">${P.map(p=>`<div class="card"><div class="img" style="${p.img?`background-image:url(${E(p.img)})`:''}">${p.img?'':E(p.emo)}</div><b>${E(p.name)}</b> <span class="tag">${E(p.cat)}</span><div class="mu" style="font-size:13px;margin:6px 0">${p.vars.map(v=>E(v.n)+' '+R(v.p)).join(' · ')}</div><button class="btn s" onclick="pedit(${p.id})">Editar</button> <button class="btn s d" onclick="pdel(${p.id})">Excluir</button></div>`).join('')}</div>`;
+ if(atab=='prod')b=`<button class="btn p" onclick="pedit()">+ Novo produto</button> <button class="btn" onclick="autoSku()">🔖 Gerar SKUs vazios</button><div class="grid" style="margin-top:12px">${P.map(p=>`<div class="card"><div class="img" style="${p.img?`background-image:url(${E(p.img)})`:''}">${p.img?'':E(p.emo)}</div><b>${E(p.name)}</b> <span class="tag">${E(p.cat)}</span><div class="mu" style="font-size:13px;margin:6px 0">${p.vars.map(v=>E(v.n)+' '+R(v.p)).join(' · ')}</div><button class="btn s" onclick="pedit(${p.id})">Editar</button> <button class="btn s d" onclick="pdel(${p.id})">Excluir</button></div>`).join('')}</div>`;
  if(atab=='rev')b=`<div class="card"><h2>Revendedores</h2>${U.map(u=>`<div class="row"><div><b>${E(u.name)}</b>${u.role=='prod'?' <span class="tag">🏭 Produção</span>':''}<br><span class="mu">${E(u.email)}</span></div><div><span class="tag ${u.status=='active'?'ok':'w'}">${u.status=='active'?'Ativo':u.status=='pending'?'Pendente':'Bloqueado'}</span> ${u.status!='active'?`<button class="btn s p" onclick="ust('${u.id}','active')">Aprovar</button>`:`<button class="btn s" onclick="ust('${u.id}','blocked')">Bloquear</button>`} <button class="btn s" onclick="urole('${u.id}','${u.role=='prod'?'rev':'prod'}')">${u.role=='prod'?'→ Revendedor':'→ Produção'}</button> <button class="btn s d" onclick="udel('${u.id}')">Remover</button></div></div>`).join('')||'<p class="mu">Nenhum revendedor ainda.</p>'}</div>`;
  if(atab=='ped')b=ordersV(true);
  return hdr('Admin')+`<div class="wrap"><div class="tabs">${T.map(t=>`<button class="tab ${atab==t[0]?'on':''}" onclick="atab='${t[0]}';go()">${t[1]}</button>`).join('')}</div>${b}</div>`}
@@ -92,23 +93,55 @@ async function udel(id){if(confirm('Remover este revendedor da revenda? O login 
 async function pdel(id){if(confirm('Excluir produto?')){if(err((await sb.from('products').delete().eq('id',id)).error))return;refresh()}}
 function pedit(id){const p=P.find(x=>x.id==id)||{name:'',cat:'Camas',emo:'📦',colors:'Rosa, Azul, Marrom',vars:[],img:''};pfile=null;
  const m=document.createElement('div');m.className='modal';m.innerHTML=`<div><h2>${id?'Editar':'Novo'} produto</h2><label>Nome</label><input id="pn" value="${E(p.name)}"><label>Categoria</label><input id="pc" value="${E(p.cat)}"><label>Cores (separadas por vírgula)</label><input id="pk" value="${E(p.colors)}">
-<label>Preços (uma linha por opção: Nome = preço)</label><textarea id="pv" rows="5">${E(p.vars.map(v=>v.n+' = '+v.p).join('\n'))}</textarea><label>Foto</label><input type="file" accept="image/*" id="pf"><div class="img" id="pp" style="${p.img?`background-image:url(${E(p.img)})`:''}">${p.img?'':E(p.emo)}</div>
+<label>Preços (uma linha por opção: Nome = preço)</label><textarea id="pv" rows="5">${E(p.vars.map(v=>v.n+' = '+v.p).join('\n'))}</textarea><label>🔖 SKU de cada cor</label><div style="display:flex;gap:8px;margin-bottom:8px"><button class="btn s" id="sk1">🔄 Atualizar lista</button><button class="btn s" id="sk2">✨ Gerar vazios</button></div><div id="sk" style="margin-bottom:10px"></div><label>Foto</label><input type="file" accept="image/*" id="pf"><div class="img" id="pp" style="${p.img?`background-image:url(${E(p.img)})`:''}">${p.img?'':E(p.emo)}</div>
 <button class="btn p" id="ps">Salvar</button> <button class="btn" onclick="this.closest('.modal').remove()">Cancelar</button></div>`;document.body.appendChild(m);
+ const sk={},cols=()=>$('#pk').value.split(',').map(x=>x.trim()).filter(Boolean),names=()=>$('#pv').value.split('\n').map(l=>l.split('=')[0].trim()).filter(Boolean);
+ p.vars.forEach(v=>cols().forEach(c=>{const x=skuOf(v,c);if(x)sk[v.n+'|'+c]=x}));
+ const buildSk=auto=>{m.querySelectorAll('#sk input').forEach(i=>sk[i.dataset.k]=i.value.trim());
+  m.querySelector('#sk').innerHTML=names().map(n=>cols().map(c=>{const k=n+'|'+c;if(auto&&!sk[k])sk[k]=slug(($('#pn').value||'PROD')+'-'+n+'-'+c);return `<div class="row" style="padding:6px 0"><span style="font-size:13px">${E(n)} · <b>${E(c)}</b></span><input data-k="${E(k)}" value="${E(sk[k]||'')}" placeholder="SKU" style="width:55%;margin:0"></div>`}).join('')).join('')||'<p class="mu" style="font-size:13px">Preencha as cores e os preços acima.</p>'};
+ buildSk(false);m.querySelector('#sk1').onclick=()=>buildSk(false);m.querySelector('#sk2').onclick=()=>buildSk(true);
  m.querySelector('#pf').onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),s=Math.min(1,800/Math.max(im.width,im.height));c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);c.toBlob(b=>{pfile=b;const pp=m.querySelector('#pp');pp.textContent='';pp.style.backgroundImage=`url(${URL.createObjectURL(b)})`},'image/jpeg',.8)};im.src=URL.createObjectURL(f)};
- m.querySelector('#ps').onclick=async()=>{const vars=$('#pv').value.split('\n').map(l=>l.split('=')).filter(a=>a.length==2&&!isNaN(parseFloat(a[1].replace(',','.')))).map(a=>({n:a[0].trim(),p:parseFloat(a[1].replace(',','.'))}));
+ m.querySelector('#ps').onclick=async()=>{const vars=$('#pv').value.split('\n').map(l=>l.split('=')).filter(a=>a.length>=2&&!isNaN(parseFloat(a[1].replace(',','.')))).map(a=>({n:a[0].trim(),p:parseFloat(a[1].replace(',','.'))}));
   if(!$('#pn').value.trim()||!vars.length)return alert('Informe nome e ao menos um preço (ex: Normal = 39)');
+  buildSk(false);vars.forEach(v=>{v.skus={};cols().forEach(c=>{const x=sk[v.n+'|'+c];if(x)v.skus[c]=x})});
   let img=p.img;if(pfile){const path=Date.now()+'.jpg',u=await sb.storage.from('produtos').upload(path,pfile,{contentType:'image/jpeg'});if(err(u.error))return;img=sb.storage.from('produtos').getPublicUrl(path).data.publicUrl}
   const o={name:$('#pn').value.trim(),cat:$('#pc').value.trim()||'Outros',emo:p.emo,colors:$('#pk').value,vars,img};
   const r=id?await sb.from('products').update(o).eq('id',id):await sb.from('products').insert(o);if(err(r.error))return;m.remove();refresh()}}
 const ST={novo:'🆕 Novo',producao:'🔧 Em produção',concluido:'📦 Pode vir buscar'};
 const stTag=s=>`<span class="tag ${s=='concluido'?'ok':s=='producao'?'w':'b'}">${ST[s]||ST.novo}</span>`;
 function noteBox(o){return o.note?`<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:#f59e0b22;font-size:13px">📝 <b>Observação:</b> ${E(o.note)}</div>`:''}
+const slug=t=>String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-|-$/g,'');
+const skuOf=(v,c)=>(v&&((v.skus&&v.skus[c])||(v.sku?v.sku+'-'+slug(c):'')))||'';
+const td=()=>new Date().toLocaleDateString('sv-SE');
+function xset(a,b){xa=a;xb=b;go()}
+function xlCard(){return `<div class="card" style="margin-bottom:12px"><b>📥 Baixar planilha de vendas (Excel)</b><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"><div><label>De</label><input type="date" value="${xa}" onchange="xa=this.value" style="margin:0"></div><div><label>Até</label><input type="date" value="${xb}" onchange="xb=this.value" style="margin:0"></div></div>
+<div style="display:flex;gap:8px;margin:10px 0"><button class="btn s" onclick="xset(td(),td())">Hoje</button><button class="btn s" onclick="xset('','')">Tudo</button></div><button class="btn p" style="width:100%" onclick="xl()">⬇️ Baixar Excel</button></div>`}
+function xl(){
+ if(typeof XLSX=='undefined')return alert('Biblioteca do Excel não carregou. Verifique a internet e recarregue a página.');
+ const day=o=>new Date(o.created_at).toLocaleDateString('sv-SE'),l=O.filter(o=>(!xa||day(o)>=xa)&&(!xb||day(o)<=xb));
+ if(!l.length)return alert('Nenhuma venda nesse período');
+ const es={novo:'Novo',producao:'Em produção',concluido:'Pode vir buscar'},rows=[],res={};let q=0,t=0;
+ l.slice().reverse().forEach(o=>o.items.forEach(i=>{
+  const sku=i.sku||skuOf(P.find(p=>p.id==i.id)?.vars.find(v=>v.n==i.v),i.c)||'',sub=Math.round(i.p*i.q*100)/100;q+=i.q;t+=sub;
+  const r=res[o.who]||(res[o.who]={'Vendedor':o.who,'Pedidos':new Set(),'Quantidade':0,'Total (R$)':0});r.Pedidos.add(o.id);r.Quantidade+=i.q;r['Total (R$)']+=sub;
+  rows.push({'Data':day(o),'Pedido':o.id,'Vendedor':o.who,'E-mail':o.email||'','SKU':sku,'Produto':i.name,'Opção':i.v,'Cor':i.c,'Quantidade':i.q,'Valor revenda (un.)':i.p,'Subtotal':sub,'Estado':es[o.status]||'Novo','Observação':o.note||''})}));
+ rows.push({});rows.push({'Vendedor':'TOTAL','Quantidade':q,'Subtotal':Math.round(t*100)/100});
+ const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[11,8,22,26,18,24,18,12,11,18,12,16,30].map(w=>({wch:w}));
+ Object.keys(ws).forEach(k=>{if(/^[JK]\d+$/.test(k)&&ws[k].t=='n')ws[k].z='"R$" #,##0.00'});
+ const rs=Object.values(res).map(r=>({...r,Pedidos:r.Pedidos.size,'Total (R$)':Math.round(r['Total (R$)']*100)/100})).sort((a,b)=>b['Total (R$)']-a['Total (R$)']),w2=XLSX.utils.json_to_sheet(rs);
+ w2['!cols']=[26,10,12,14].map(w=>({wch:w}));Object.keys(w2).forEach(k=>{if(/^D\d+$/.test(k)&&w2[k].t=='n')w2[k].z='"R$" #,##0.00'});
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Vendas');XLSX.utils.book_append_sheet(wb,w2,'Por vendedor');
+ XLSX.writeFile(wb,'vendas_'+(xa||'inicio')+(xb&&xb!=xa?'_a_'+xb:'')+'.xlsx')}
+async function autoSku(){if(!confirm('Gerar SKU automático para cada cor que estiver sem código?'))return;
+ for(const p of P){const cs=p.colors.split(',').map(x=>x.trim()).filter(Boolean),vars=p.vars.map(v=>{const{sku,...r}=v,k={...(v.skus||{})};cs.forEach(c=>{if(!k[c])k[c]=skuOf(v,c)||slug(p.name+'-'+v.n+'-'+c)});return{...r,skus:k}});
+  if(JSON.stringify(vars)!=JSON.stringify(p.vars)){const r=await sb.from('products').update({vars}).eq('id',p.id);if(err(r.error))return}}
+ refresh();alert('SKUs gerados! Você pode editar cada um dentro do produto.')}
 function waBtn(o){const t=(o.phone||'').replace(/\D/g,'');if(t.length<10)return '<span class="mu" style="font-size:12px">sem WhatsApp</span>';
  const n=t.length<=11?'55'+t:t,m=`Olá, ${o.who}! 🎉 Seu pedido #${o.id} está pronto: pode vir buscar! 📦 Total: ${R(o.total)}. Obrigado pela preferência!`;
  return `<a class="btn p" style="text-decoration:none;background:#25d366" href="https://wa.me/${n}?text=${encodeURIComponent(m)}" target="_blank" rel="noopener">📲 Avisar no WhatsApp</a>`}
 function ordersV(adm){
  const l=O.filter(o=>(ost=='todos'||o.status==ost)&&(o.email||'').toLowerCase().includes(oemail.trim().toLowerCase())),cnt=s=>O.filter(o=>s=='todos'||o.status==s).length,stp=s=>({novo:1,producao:2,concluido:3}[s]||1);
- return `<input id="fe" placeholder="🔍 Filtrar por e-mail..." value="${E(oemail)}" oninput="oemail=this.value;rl(this)">
+ return `${adm?xlCard():''}<input id="fe" placeholder="🔍 Filtrar por e-mail..." value="${E(oemail)}" oninput="oemail=this.value;rl(this)">
 <div class="tabs">${['todos','novo','producao','concluido'].map(s=>`<button class="tab ${ost==s?'on':''}" onclick="ost='${s}';go()">${s=='todos'?'Todos':ST[s]} (${cnt(s)})</button>`).join('')}</div>
 ${l.map(o=>`<div class="ord ${o.status}"><div class="row" style="border:0;padding:0"><div><b style="font-size:16px">${E(o.who)}</b> ${stTag(o.status)}<br><span class="mu" style="font-size:12px">✉️ ${E(o.email||'—')} · ${dt(o.created_at)} · #${o.id}</span></div><b class="price">${R(o.total)}</b></div>
 <div class="steps">${[1,2,3].map(n=>`<i class="${n<=stp(o.status)?'on':''}"></i>`).join('')}</div>
@@ -116,15 +149,15 @@ ${l.map(o=>`<div class="ord ${o.status}"><div class="row" style="border:0;paddin
 ${noteBox(o)}<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${adm?`<select onchange="setSt(${o.id},this.value)" style="width:auto;margin:0">${Object.keys(ST).map(k=>`<option value="${k}" ${o.status==k?'selected':''}>${ST[k]}</option>`).join('')}</select><button class="btn s" onclick="oedit(${o.id})">✏️ Editar</button><button class="btn s d" onclick="odel(${o.id})">🗑 Excluir</button>`:`${o.status!='producao'?`<button class="btn" onclick="setSt(${o.id},'producao')">🔧 Em produção</button>`:''}${o.status!='concluido'?`<button class="btn p" onclick="setSt(${o.id},'concluido')">📦 Pode vir buscar</button>`:''}`}${o.status=='concluido'?waBtn(o):''}</div></div>`).join('')||'<div class="card mu" style="text-align:center">Nenhum pedido encontrado.</div>'}`}
 function oedit(id){
  const o=O.find(x=>x.id==id),d={who:o.who,email:o.email||'',phone:o.phone||'',note:o.note||'',items:o.items.map(i=>({...i}))},m=document.createElement('div');m.className='modal';
- const flat=P.flatMap(p=>p.vars.map(v=>({id:p.id,name:p.name,v:v.n,p:v.p,c:(p.colors.split(',')[0]||'').trim()}))),tot=()=>d.items.reduce((a,i)=>a+i.p*i.q,0);
+ const flat=P.flatMap(p=>p.vars.map(v=>({id:p.id,name:p.name,v:v.n,p:v.p,sku:skuOf(v,(p.colors.split(',')[0]||'').trim()),c:(p.colors.split(',')[0]||'').trim()}))),tot=()=>d.items.reduce((a,i)=>a+i.p*i.q,0);
  const draw=()=>{m.innerHTML=`<div><h2>✏️ Editar pedido #${o.id}</h2><label>Nome do revendedor</label><input id="ow" value="${E(d.who)}"><label>E-mail</label><input id="oe" value="${E(d.email)}"><label>WhatsApp</label><input id="op" value="${E(d.phone)}"><label>📝 Observação</label><textarea id="ok" rows="3">${E(d.note)}</textarea>
 ${d.items.map((i,k)=>`<div class="ord" style="padding:10px"><b>${E(i.name)}</b> <span class="mu">${E(i.v)}</span> <button class="btn s d" data-r="${k}" style="float:right">✕</button><div style="display:grid;grid-template-columns:70px 1fr 95px;gap:8px;margin-top:8px"><div><label>Qtd</label><input type="number" min="1" value="${i.q}" data-f="q" data-k="${k}" style="margin:0"></div><div><label>Cor</label><input value="${E(i.c)}" data-f="c" data-k="${k}" style="margin:0"></div><div><label>Preço un.</label><input type="number" step="0.01" value="${i.p}" data-f="p" data-k="${k}" style="margin:0"></div></div></div>`).join('')}
 <label>Adicionar item</label><div style="display:flex;gap:8px"><select id="oa" style="margin:0">${flat.map((x,k)=>`<option value="${k}">${E(x.name)} — ${E(x.v)} (${R(x.p)})</option>`).join('')}</select><button class="btn p" id="oaa">+</button></div>
 <div class="row"><b>Total</b><span class="price" id="ot">${R(tot())}</span></div><button class="btn p" style="width:100%" id="os">Salvar alterações</button><button class="btn" style="width:100%;margin-top:8px" id="oc">Cancelar</button></div>`;
  m.querySelector('#ow').oninput=e=>d.who=e.target.value;m.querySelector('#oe').oninput=e=>d.email=e.target.value;m.querySelector('#op').oninput=e=>d.phone=e.target.value;m.querySelector('#ok').oninput=e=>d.note=e.target.value;
- m.querySelectorAll('[data-f]').forEach(inp=>inp.oninput=()=>{const f=inp.dataset.f,i=d.items[inp.dataset.k];i[f]=f=='c'?inp.value:f=='q'?Math.max(1,parseInt(inp.value)||1):Math.max(0,parseFloat(inp.value)||0);m.querySelector('#ot').textContent=R(tot())});
+ m.querySelectorAll('[data-f]').forEach(inp=>inp.oninput=()=>{const f=inp.dataset.f,i=d.items[inp.dataset.k];i[f]=f=='c'?inp.value:f=='q'?Math.max(1,parseInt(inp.value)||1):Math.max(0,parseFloat(inp.value)||0);if(f=='c'){const pp=P.find(x=>x.id==i.id),vv=pp&&pp.vars.find(x=>x.n==i.v);if(vv)i.sku=skuOf(vv,i.c.trim())}m.querySelector('#ot').textContent=R(tot())});
  m.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{d.items.splice(b.dataset.r,1);draw()});
- m.querySelector('#oaa').onclick=()=>{const x=flat[m.querySelector('#oa').value];if(x){d.items.push({id:x.id,name:x.name,v:x.v,c:x.c,p:x.p,q:1});draw()}};
+ m.querySelector('#oaa').onclick=()=>{const x=flat[m.querySelector('#oa').value];if(x){d.items.push({id:x.id,name:x.name,v:x.v,c:x.c,p:x.p,q:1,sku:x.sku});draw()}};
  m.querySelector('#oc').onclick=()=>m.remove();
  m.querySelector('#os').onclick=async()=>{if(!d.items.length)return alert('O pedido precisa ter ao menos 1 item');
   const r=await sb.from('orders').update({who:d.who.trim()||o.who,email:d.email.trim()||null,phone:d.phone.replace(/\D/g,'')||null,note:d.note.trim()||null,items:d.items,total:Number(tot().toFixed(2))}).eq('id',id);if(err(r.error))return;m.remove();refresh()}};
@@ -148,7 +181,7 @@ ${n?`<div class="cartbar"><button class="btn p" style="width:100%;padding:15px;f
 function rl(el){const s=el.selectionStart,id=el.id;go();const i=document.getElementById(id);i.focus();i.setSelectionRange(s,s)}
 function pp(id){$('#pr'+id).textContent=R(P.find(x=>x.id==id).vars[$('#v'+id).value].p)}
 function add(id){const p=P.find(x=>x.id==id),v=p.vars[$('#v'+id).value],c=$('#c'+id).value,k=Math.max(1,parseInt($('#q'+id).value)||1);
- const x=cart.find(i=>i.id==id&&i.v==v.n&&i.c==c);x?x.q+=k:cart.push({id,name:p.name,v:v.n,c,p:v.p,q:k});go()}
+ const x=cart.find(i=>i.id==id&&i.v==v.n&&i.c==c);x?x.q+=k:cart.push({id,name:p.name,v:v.n,c,p:v.p,q:k,sku:skuOf(v,c)});go()}
 function cartV(){let nt='';const m=document.createElement('div');m.className='modal';
  const draw=()=>{const t=cart.reduce((a,i)=>a+i.p*i.q,0);m.innerHTML=`<div><h2>🛒 Seu pedido</h2><label>Nome do revendedor</label><input id="rn" value="${E(me.name)}"><label>WhatsApp (avisamos quando estiver pronto)</label><input id="rt" type="tel" value="${E(me.phone||(()=>{try{return localStorage.getItem('rvphone')||''}catch(e){return ''}})())}">
 ${cart.map((i,k)=>`<div class="row"><div><b>${E(i.name)}</b><br><span class="mu">${E(i.v)} · ${E(i.c)} · ${R(i.p)}</span></div><div>${i.q}x <b>${R(i.p*i.q)}</b> <button class="btn s d" data-k="${k}">✕</button></div></div>`).join('')}
