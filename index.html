@@ -40,10 +40,15 @@ input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--bd);bo
 .splash b{display:block;font-size:30px;animation:pop .6s both .15s}.splash .big{font-size:80px;animation:bob 1s infinite}
 .splash i{position:absolute;top:-20px;width:10px;height:14px;animation:fall 1.8s linear forwards}@keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
 @media(prefers-reduced-motion:reduce){.pw,.login.g,.bob{animation:none}}
+.bub{max-width:82%;padding:8px 12px;border-radius:16px;margin:6px 0;width:fit-content;font-size:14px;word-break:break-word;animation:pop .25s both}.bub.me{margin-left:auto;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border-bottom-right-radius:4px}.bub.ot{background:var(--bd);border-bottom-left-radius:4px}
+.bub small{display:block;font-size:10px;opacity:.7;text-align:right;margin-top:2px}.bub img{max-width:100%;border-radius:10px;display:block;margin-bottom:4px;cursor:pointer}
+#msgs{height:50vh;overflow-y:auto;padding:8px;background:var(--bg);border-radius:14px;border:1px solid var(--bd)}
+.chip{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;margin:2px}.dot{background:#ef4444;color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;font-weight:700}
+.crow{display:flex;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--bd);cursor:pointer}.crow:hover{background:var(--bg)}.av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;flex:none}
 </style></head><body><div id="app"></div>
 <script>
 /* ====== CONFIGURE AQUI (Supabase > Project Settings > API) ====== */
-const SUPABASE_URL='https://rngylwfuhgmclexvfqiy.supabase.co', SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuZ3lsd2Z1aGdtY2xleHZmcWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MzUwMTUsImV4cCI6MjEwNjIxMTAxNX0.LbYlRCXCvPQOtwiid27ZNDs8eXVKSWvv8OOR1oBMPPk';
+const SUPABASE_URL='COLE_A_PROJECT_URL_AQUI', SUPABASE_KEY='COLE_A_ANON_PUBLIC_KEY_AQUI';
 /* ================================================================ */
 const $=s=>document.querySelector(s),R=n=>'R$ '+Number(n).toFixed(2).replace('.',','),E=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -53,7 +58,7 @@ const dt=s=>new Date(s).toLocaleDateString('pt-BR');
 async function load(){
  let r=await sb.from('products').select('*').order('id');P=r.data||[];
  r=await sb.from('orders').select('*').order('id',{ascending:false});O=r.data||[];
- if(me.role=='admin'){r=await sb.from('profiles').select('*').in('role',['rev','prod']).order('name');U=r.data||[]}}
+ if(me.role=='admin'){r=await sb.from('profiles').select('*').in('role',['rev','prod']).order('name');U=r.data||[];r=await sb.from('rev_meta').select('*');M={};(r.data||[]).forEach(x=>M[x.rev_id]={tags:x.tags||[],note:x.note||''})}await loadMsgs()}
 async function boot(){
  if(SUPABASE_URL.startsWith('COLE'))return $('#app').innerHTML='<div class="wrap"><div class="card"><h2>Configure o Supabase</h2><p>Edite o index.html e cole a URL e a anon key no topo do script.</p></div></div>';
  const{data:{session}}=await sb.auth.getSession();
@@ -61,7 +66,7 @@ async function boot(){
 async function enter(id,silent){
  const{data}=await sb.from('profiles').select('*').eq('id',id).single();
  if(!data||data.status!='active'){if(!silent||data)alert(!data?'Acesso removido.':data.status=='pending'?'Cadastro aguardando aprovação do admin.':'Acesso bloqueado.');await sb.auth.signOut();me=null;return go()}
- me=data;await load();go();if(!silent)splash(data.name)}
+ me=data;await load();go();rt();if(!silent)splash(data.name)}
 function go(){$('#app').innerHTML=!me?loginV():me.role=='admin'?adminV():me.role=='prod'?prodV():resV()}
 function loginV(reg){return`<div class="login g">${Array.from({length:14},()=>`<span class="pw" style="left:${Math.random()*100}%;animation-duration:${6+Math.random()*8}s;animation-delay:-${Math.random()*10}s;font-size:${18+Math.random()*26}px">🐾</span>`).join('')}<div class="card"><h2><span class="bob">🐾</span> Portal do Revendedor</h2><p class="mu">${reg?'Crie sua conta. O admin precisa aprovar.':'Entre com seu e-mail.'}</p>
 ${reg?'<label>Seu nome</label><input id="n"><label>WhatsApp (com DDD)</label><input id="tel" type="tel" placeholder="11999999999">':''}<label>E-mail</label><input id="e" type="email"><label>Senha</label><input id="p" type="password" onkeydown="if(event.key=='Enter')this.closest('.card').querySelector('.btn.p').click()">
@@ -78,14 +83,14 @@ async function signup(){const tel=$('#tel').value.replace(/\D/g,''),n=$('#n').va
  if(!n||!e||p.length<6||tel.length<10)return alert('Preencha tudo (WhatsApp com DDD e senha com 6+ caracteres)');
  const{error}=await sb.auth.signUp({email:e,password:p,options:{data:{name:n,phone:tel}}});if(err(error))return;
  await sb.auth.signOut();alert(['admin@admin.com','producao@admin.com'].includes(e)?'Conta criada! Agora entre.':'Cadastro enviado! Aguarde aprovação.');$('#app').innerHTML=loginV()}
-async function out(){await sb.auth.signOut();me=null;cart=[];go()}
-const hdr=t=>`<header><span class="g" style="border-radius:10px;padding:5px 8px">🐾</span><b>${t}</b><span class="mu" style="font-size:12px">${E(me.name)}</span><button class="btn s" onclick="out()">Sair</button></header>`;
+async function out(){if(chan){sb.removeChannel(chan);chan=null}await sb.auth.signOut();me=null;cart=[];chatRev=null;go()}
+const hdr=t=>`<header><span class="g" style="border-radius:10px;padding:5px 8px">🐾</span><b>${t}</b><span class="mu" style="font-size:12px">${E(me.name)}</span>${me.role=='rev'?`<button class="btn s" onclick="chatR()">💬${unR()?` <span class="dot">${unR()}</span>`:''}</button>`:''}<button class="btn s" onclick="out()">Sair</button></header>`;
 /* ---------- ADMIN ---------- */
-function adminV(){const tot=O.reduce((a,o)=>a+Number(o.total),0),T=[['dash','📊 Painel'],['prod','📦 Produtos'],['rev','👥 Revendedores'],['ped','🧾 Pedidos']];let b='';
+function adminV(){const tot=O.reduce((a,o)=>a+Number(o.total),0),T=[['dash','📊 Painel'],['prod','📦 Produtos'],['rev','👥 Revendedores'],['ped','🧾 Pedidos'],['chat','💬 Chat'+(unA()?' 🔴'+unA():'')]];let b='';
  if(atab=='dash')b=`<div class="stats"><div class="stat g"><b>${P.length}</b>Produtos</div><div class="stat" style="background:#0ea5e9"><b>${U.filter(u=>u.role=='rev'&&u.status=='active').length}</b>Revendedores</div><div class="stat" style="background:#f59e0b"><b>${U.filter(u=>u.status=='pending').length}</b>Pendentes</div><div class="stat" style="background:#16a34a"><b>${R(tot)}</b>${O.length} pedidos</div></div><div class="card"><b>Bem-vindo, chefe 👑</b><p class="mu">Gerencie produtos, preços, fotos e quem participa da revenda.</p></div>`;
  if(atab=='prod')b=`<button class="btn p" onclick="pedit()">+ Novo produto</button> <button class="btn" onclick="autoSku()">🔖 Gerar SKUs vazios</button><div class="grid" style="margin-top:12px">${P.map(p=>`<div class="card"><div class="img" style="${p.img?`background-image:url(${E(p.img)})`:''}">${p.img?'':E(p.emo)}</div><b>${E(p.name)}</b> <span class="tag">${E(p.cat)}</span><div class="mu" style="font-size:13px;margin:6px 0">${p.vars.map(v=>E(v.n)+' '+R(v.p)).join(' · ')}</div><button class="btn s" onclick="pedit(${p.id})">Editar</button> <button class="btn s d" onclick="pdel(${p.id})">Excluir</button></div>`).join('')}</div>`;
  if(atab=='rev')b=`<div class="card"><h2>Revendedores</h2>${U.map(u=>`<div class="row"><div><b>${E(u.name)}</b>${u.role=='prod'?' <span class="tag">🏭 Produção</span>':''}<br><span class="mu">${E(u.email)}</span></div><div><span class="tag ${u.status=='active'?'ok':'w'}">${u.status=='active'?'Ativo':u.status=='pending'?'Pendente':'Bloqueado'}</span> ${u.status!='active'?`<button class="btn s p" onclick="ust('${u.id}','active')">Aprovar</button>`:`<button class="btn s" onclick="ust('${u.id}','blocked')">Bloquear</button>`} <button class="btn s" onclick="urole('${u.id}','${u.role=='prod'?'rev':'prod'}')">${u.role=='prod'?'→ Revendedor':'→ Produção'}</button> <button class="btn s d" onclick="udel('${u.id}')">Remover</button></div></div>`).join('')||'<p class="mu">Nenhum revendedor ainda.</p>'}</div>`;
- if(atab=='ped')b=ordersV(true);
+ if(atab=='ped')b=ordersV(true);if(atab=='chat')b=chatAdminV();
  return hdr('Admin')+`<div class="wrap"><div class="tabs">${T.map(t=>`<button class="tab ${atab==t[0]?'on':''}" onclick="atab='${t[0]}';go()">${t[1]}</button>`).join('')}</div>${b}</div>`}
 async function refresh(){await load();go()}
 async function ust(id,s){if(err((await sb.from('profiles').update({status:s}).eq('id',id)).error))return;refresh()}
@@ -110,6 +115,55 @@ function pedit(id){const p=P.find(x=>x.id==id)||{name:'',cat:'Camas',emo:'📦',
 const ST={novo:'🆕 Novo',producao:'🔧 Em produção',concluido:'📦 Pode vir buscar'};
 const stTag=s=>`<span class="tag ${s=='concluido'?'ok':s=='producao'?'w':'b'}">${ST[s]||ST.novo}</span>`;
 function noteBox(o){return o.note?`<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:#f59e0b22;font-size:13px">📝 <b>Observação:</b> ${E(o.note)}</div>`:''}
+let MSG=[],M={},chatRev=null,cq='',cf='',TG=[],chan=null,lastSig='';
+const QR=['Olá! Como posso ajudar? 😊','Seu pedido entrou em produção 🔧','Seu pedido está pronto: pode vir buscar! 📦','Vou verificar e já te retorno.','Nossa chave Pix é: '],TS=['VIP','Novo','Devendo','Atacado','Atenção','Pagou'];
+const tc=t=>{let h=0;for(const c of t)h=(h*31+c.charCodeAt(0))%360;return `background:hsl(${h} 80% 50%/.2);color:hsl(${h} 75% 55%)`};
+const cmsgs=id=>MSG.filter(x=>x.rev_id==id),unA=()=>MSG.filter(x=>!x.from_admin&&!x.read).length,unR=()=>MSG.filter(x=>x.from_admin&&!x.read).length,curConv=()=>me.role=='admin'?chatRev:me.id;
+const typing=()=>['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)||document.querySelector('.modal');
+async function loadMsgs(){if(me.role=='prod'){MSG=[];return}const r=await sb.from('messages').select('*').order('id',{ascending:false}).limit(1000);MSG=(r.data||[]).reverse()}
+function rt(){if(chan||me.role=='prod')return;chan=sb.channel('msgs').on('postgres_changes',{event:'*',schema:'public',table:'messages'},async()=>{await loadMsgs();if($('#msgs')){drawMsgs();markRead(curConv())}else if(!typing())go()}).subscribe()}
+async function markRead(id){if(!id)return;const mine=me.role=='admin';if(!MSG.some(x=>x.rev_id==id&&x.from_admin!=mine&&!x.read))return;await sb.rpc('mark_read',{conv:id});MSG.forEach(x=>{if(x.rev_id==id&&x.from_admin!=mine)x.read=true})}
+function bubbles(id){const l=cmsgs(id);let last='';return l.map(x=>{const mine=me.role=='admin'?x.from_admin:!x.from_admin,d=dt(x.created_at),sep=d!=last?(last=d,`<div style="text-align:center"><span class="tag">${d}</span></div>`):'';
+ return sep+`<div class="bub ${mine?'me':'ot'}">${x.img?`<img src="${E(x.img)}" onclick="window.open(this.src)">`:''}${x.body?E(x.body).replace(/\n/g,'<br>'):''}<small>${new Date(x.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}${mine?(x.read?' ✓✓':' ✓'):''}</small></div>`}).join('')||'<p class="mu" style="text-align:center">Nenhuma mensagem ainda. Diga olá! 👋</p>'}
+function drawMsgs(force){const b=$('#msgs'),id=curConv();if(!b||!id)return;const l=cmsgs(id),sig=l.length+'|'+l.filter(x=>x.read).length;if(!force&&sig==lastSig)return;lastSig=sig;b.innerHTML=bubbles(id);b.scrollTop=b.scrollHeight}
+const chatInput=()=>`<div style="display:flex;gap:8px;margin-top:8px;align-items:center"><label class="btn" style="margin:0;cursor:pointer;font-size:16px">📎<input type="file" accept="image/*" hidden onchange="cimg(this)"></label><input id="ci" placeholder="Digite uma mensagem..." style="margin:0" onkeydown="if(event.key=='Enter')csend()"><button class="btn p" onclick="csend()">➤</button></div>`;
+async function csend(img){const id=curConv(),t=$('#ci'),body=(t?t.value:'').trim();if(!id||(!body&&!img))return;if(t)t.value='';
+ const r=await sb.from('messages').insert({rev_id:id,from_admin:me.role=='admin',body:body||null,img:img||null});if(err(r.error))return;await loadMsgs();drawMsgs(true)}
+async function cimg(el){const f=el.files[0];if(!f)return;const b=await new Promise(res=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas'),k=Math.min(1,900/Math.max(im.width,im.height));c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);c.toBlob(res,'image/jpeg',.8)};im.src=URL.createObjectURL(f)});
+ const path=curConv()+'/'+Date.now()+'.jpg',u=await sb.storage.from('chat').upload(path,b,{contentType:'image/jpeg'});el.value='';if(err(u.error))return;csend(sb.storage.from('chat').getPublicUrl(path).data.publicUrl)}
+function qrx(i){const t=$('#ci');t.value=QR[i];t.focus()}
+async function chatR(){await loadMsgs();lastSig='';const m=document.createElement('div');m.className='modal';
+ m.innerHTML=`<div><div class="row" style="border:0;padding:0"><h2 style="margin:0">💬 Chat com a revenda</h2><button class="btn s" id="cx">Fechar</button></div><div id="msgs" style="margin:10px 0"></div>${chatInput()}</div>`;
+ document.body.appendChild(m);m.querySelector('#cx').onclick=()=>{m.remove();go()};drawMsgs(true);await markRead(me.id);drawMsgs(true)}
+/* admin */
+function openConv(id){chatRev=id;lastSig='';go();drawMsgs(true);markRead(id).then(()=>drawMsgs(true))}
+function chatHead(id){const u=U.find(x=>x.id==id),m=M[id]||{tags:[],note:''},all=[...new Set([...TS,...Object.values(M).flatMap(x=>x.tags)])];
+ return `<div class="card"><b style="font-size:16px">${E(u.name)}</b> <span class="mu">${E(u.email)}</span><div style="margin:8px 0">${m.tags.map((t,k)=>`<span class="chip" style="${tc(t)}">${E(t)} <a href="#" onclick="rmTag('${id}',${k});return false" style="color:inherit;text-decoration:none">✕</a></span>`).join('')||'<span class="mu" style="font-size:13px">Sem etiquetas</span>'}</div>
+<div style="display:flex;gap:6px"><input id="tg" list="tgl" placeholder="Nova etiqueta..." maxlength="20" style="margin:0" onkeydown="if(event.key=='Enter')addTag('${id}',this.value)"><datalist id="tgl">${all.map(t=>`<option value="${E(t)}">`).join('')}</datalist><button class="btn s" onclick="addTag('${id}',$('#tg').value)">+ Etiqueta</button></div>
+<label style="display:block;margin-top:8px">🔒 Anotação interna (só você vê)</label><textarea rows="2" style="margin-bottom:0" onchange="setNote('${id}',this.value)">${E(m.note||'')}</textarea></div>`}
+const drawHead=()=>{const h=$('#chead');if(h)h.innerHTML=chatHead(chatRev)};
+async function saveMeta(id){const m=M[id];const r=await sb.from('rev_meta').upsert({rev_id:id,tags:m.tags,note:m.note||null});err(r.error)}
+async function addTag(id,t){t=(t||'').trim().slice(0,20);if(!t)return;const m=M[id]||(M[id]={tags:[],note:''});if(!m.tags.includes(t))m.tags.push(t);await saveMeta(id);drawHead()}
+async function rmTag(id,k){M[id].tags.splice(k,1);await saveMeta(id);drawHead()}
+async function setNote(id,v){const m=M[id]||(M[id]={tags:[],note:''});m.note=v;await saveMeta(id)}
+function chatAdminV(){
+ if(chatRev)return `<button class="btn s" onclick="chatRev=null;go()">← Conversas</button><div id="chead" style="margin:10px 0">${chatHead(chatRev)}</div><div id="msgs"></div><div style="margin:8px 0;overflow-x:auto;white-space:nowrap">${QR.map((t,i)=>`<button class="chip" style="border:1px solid var(--bd);background:var(--card);cursor:pointer;color:inherit;font-weight:500" onclick="qrx(${i})">${E(t.slice(0,24))}…</button>`).join('')}</div>${chatInput()}`;
+ const revs=U.filter(u=>u.role=='rev');TG=[...new Set(revs.flatMap(u=>(M[u.id]||{tags:[]}).tags))];
+ const last=id=>{const l=cmsgs(id);return l[l.length-1]},un=id=>MSG.filter(x=>x.rev_id==id&&!x.from_admin&&!x.read).length;
+ const l=revs.filter(u=>(!cf||((M[u.id]||{tags:[]}).tags).includes(cf))&&(u.name+' '+u.email).toLowerCase().includes(cq.toLowerCase())).sort((a,b)=>un(b.id)-un(a.id)||((last(b.id)||{id:0}).id-(last(a.id)||{id:0}).id));
+ return `<div style="display:flex;gap:8px"><input id="cqi" placeholder="🔍 Buscar revendedor..." value="${E(cq)}" oninput="cq=this.value;rl(this)" style="margin:0"><button class="btn p" onclick="bcast()">📢 Todos</button></div>
+<div class="tabs" style="margin-top:10px"><button class="tab ${!cf?'on':''}" onclick="cf='';go()">Todas</button>${TG.map((t,k)=>`<button class="tab ${cf==t?'on':''}" onclick="cf=TG[${k}];go()">🏷 ${E(t)}</button>`).join('')}</div>
+<div class="card" style="padding:0">${l.map(u=>{const m=last(u.id),n=un(u.id);return `<div class="crow" onclick="openConv('${u.id}')"><div class="av g">${E((u.name||'?')[0].toUpperCase())}</div><div style="flex:1;min-width:0"><b>${E(u.name)}</b> ${((M[u.id]||{tags:[]}).tags).map(t=>`<span class="chip" style="${tc(t)}">${E(t)}</span>`).join('')}<div class="mu" style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m?(m.from_admin?'Você: ':'')+(m.img?'📷 Foto':E(m.body||'')):'Sem mensagens'}</div></div>${n?`<span class="dot">${n}</span>`:''}</div>`}).join('')||'<p class="mu" style="padding:14px">Nenhum revendedor encontrado.</p>'}</div>`}
+function bcast(){const revs=U.filter(u=>u.role=='rev'&&u.status=='active'),tg=[...new Set(revs.flatMap(u=>(M[u.id]||{tags:[]}).tags))],m=document.createElement('div');m.className='modal';
+ m.innerHTML=`<div><h2>📢 Mensagem em massa</h2><label>Enviar para</label><select id="bt"><option value="">Todos os revendedores ativos (${revs.length})</option>${tg.map((t,k)=>`<option value="${k}">Etiqueta: ${E(t)} (${revs.filter(u=>((M[u.id]||{tags:[]}).tags).includes(t)).length})</option>`).join('')}</select><label>Mensagem</label><textarea id="bm" rows="4" placeholder="Ex.: Tabela nova a partir de segunda!"></textarea><button class="btn p" style="width:100%" id="bs">Enviar</button><button class="btn" style="width:100%;margin-top:8px" id="bc">Cancelar</button></div>`;
+ document.body.appendChild(m);m.querySelector('#bc').onclick=()=>m.remove();
+ m.querySelector('#bs').onclick=async()=>{const body=$('#bm').value.trim(),k=$('#bt').value;if(!body)return alert('Escreva a mensagem');const t=k===''?null:tg[k],to=revs.filter(u=>!t||((M[u.id]||{tags:[]}).tags).includes(t));
+  if(!to.length)return alert('Ninguém nessa seleção');if(!confirm('Enviar para '+to.length+' revendedor(es)?'))return;
+  const r=await sb.from('messages').insert(to.map(u=>({rev_id:u.id,from_admin:true,body})));if(err(r.error))return;m.remove();await loadMsgs();go();alert('Enviado! ✅')}}
+const PKL={manha:'🌅 Manhã',tarde:'☀️ Tarde',qualquer:'🕐 Qualquer horário'};let opk='todos';
+const pkTag=o=>`<span class="tag" style="background:#8b5cf622;color:#7c3aed">${PKL[o.pickup]||PKL.qualquer}</span>`;
+const tm=s=>new Date(s).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const ago=s=>{const m=Math.floor((Date.now()-new Date(s))/60000);return m<1?'agora':m<60?'há '+m+' min':m<1440?'há '+Math.floor(m/60)+' h':'há '+Math.floor(m/1440)+' d'};
 const slug=t=>String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]+/g,'-').replace(/^-|-$/g,'');
 const skuOf=(v,c)=>(v&&((v.skus&&v.skus[c])||(v.sku?v.sku+'-'+slug(c):'')))||'';
 const td=()=>new Date().toLocaleDateString('sv-SE');
@@ -124,10 +178,10 @@ function xl(){
  l.slice().reverse().forEach(o=>o.items.forEach(i=>{
   const sku=i.sku||skuOf(P.find(p=>p.id==i.id)?.vars.find(v=>v.n==i.v),i.c)||'',sub=Math.round(i.p*i.q*100)/100;q+=i.q;t+=sub;
   const r=res[o.who]||(res[o.who]={'Vendedor':o.who,'Pedidos':new Set(),'Quantidade':0,'Total (R$)':0});r.Pedidos.add(o.id);r.Quantidade+=i.q;r['Total (R$)']+=sub;
-  rows.push({'Data':day(o),'Pedido':o.id,'Vendedor':o.who,'E-mail':o.email||'','SKU':sku,'Produto':i.name,'Opção':i.v,'Cor':i.c,'Quantidade':i.q,'Valor revenda (un.)':i.p,'Subtotal':sub,'Estado':es[o.status]||'Novo','Observação':o.note||''})}));
+  rows.push({'Data':day(o),'Hora':tm(o.created_at),'Pedido':o.id,'Vendedor':o.who,'E-mail':o.email||'','SKU':sku,'Produto':i.name,'Opção':i.v,'Cor':i.c,'Quantidade':i.q,'Valor revenda (un.)':i.p,'Subtotal':sub,'Estado':es[o.status]||'Novo','Horário de busca':({manha:'Manhã',tarde:'Tarde'}[o.pickup]||'Qualquer horário'),'Observação':o.note||''})}));
  rows.push({});rows.push({'Vendedor':'TOTAL','Quantidade':q,'Subtotal':Math.round(t*100)/100});
- const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[11,8,22,26,18,24,18,12,11,18,12,16,30].map(w=>({wch:w}));
- Object.keys(ws).forEach(k=>{if(/^[JK]\d+$/.test(k)&&ws[k].t=='n')ws[k].z='"R$" #,##0.00'});
+ const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[11,7,8,22,26,18,24,18,12,11,18,12,16,18,30].map(w=>({wch:w}));
+ Object.keys(ws).forEach(k=>{if(/^[KL]\d+$/.test(k)&&ws[k].t=='n')ws[k].z='"R$" #,##0.00'});
  const rs=Object.values(res).map(r=>({...r,Pedidos:r.Pedidos.size,'Total (R$)':Math.round(r['Total (R$)']*100)/100})).sort((a,b)=>b['Total (R$)']-a['Total (R$)']),w2=XLSX.utils.json_to_sheet(rs);
  w2['!cols']=[26,10,12,14].map(w=>({wch:w}));Object.keys(w2).forEach(k=>{if(/^D\d+$/.test(k)&&w2[k].t=='n')w2[k].z='"R$" #,##0.00'});
  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Vendas');XLSX.utils.book_append_sheet(wb,w2,'Por vendedor');
@@ -137,30 +191,31 @@ async function autoSku(){if(!confirm('Gerar SKU automático para cada cor que es
   if(JSON.stringify(vars)!=JSON.stringify(p.vars)){const r=await sb.from('products').update({vars}).eq('id',p.id);if(err(r.error))return}}
  refresh();alert('SKUs gerados! Você pode editar cada um dentro do produto.')}
 function waBtn(o){const t=(o.phone||'').replace(/\D/g,'');if(t.length<10)return '<span class="mu" style="font-size:12px">sem WhatsApp</span>';
- const n=t.length<=11?'55'+t:t,m=`Olá, ${o.who}! 🎉 Seu pedido #${o.id} está pronto: pode vir buscar! 📦 Total: ${R(o.total)}. Obrigado pela preferência!`;
+ const n=t.length<=11?'55'+t:t,m=`Olá, ${o.who}! 🎉 Seu pedido #${o.id} está pronto: pode vir buscar${o.pickup=='manha'?' pela manhã 🌅':o.pickup=='tarde'?' à tarde ☀️':' em qualquer horário 🕐'}! 📦 Total: ${R(o.total)}. Obrigado pela preferência!`;
  return `<a class="btn p" style="text-decoration:none;background:#25d366" href="https://wa.me/${n}?text=${encodeURIComponent(m)}" target="_blank" rel="noopener">📲 Avisar no WhatsApp</a>`}
 function ordersV(adm){
- const l=O.filter(o=>(ost=='todos'||o.status==ost)&&(o.email||'').toLowerCase().includes(oemail.trim().toLowerCase())),cnt=s=>O.filter(o=>s=='todos'||o.status==s).length,stp=s=>({novo:1,producao:2,concluido:3}[s]||1);
+ const l=O.filter(o=>(ost=='todos'||o.status==ost)&&(opk=='todos'||(o.pickup||'qualquer')==opk)&&(o.email||'').toLowerCase().includes(oemail.trim().toLowerCase())),cnt=s=>O.filter(o=>s=='todos'||o.status==s).length,stp=s=>({novo:1,producao:2,concluido:3}[s]||1);
  return `${adm?xlCard():''}<input id="fe" placeholder="🔍 Filtrar por e-mail..." value="${E(oemail)}" oninput="oemail=this.value;rl(this)">
 <div class="tabs">${['todos','novo','producao','concluido'].map(s=>`<button class="tab ${ost==s?'on':''}" onclick="ost='${s}';go()">${s=='todos'?'Todos':ST[s]} (${cnt(s)})</button>`).join('')}</div>
-${l.map(o=>`<div class="ord ${o.status}"><div class="row" style="border:0;padding:0"><div><b style="font-size:16px">${E(o.who)}</b> ${stTag(o.status)}<br><span class="mu" style="font-size:12px">✉️ ${E(o.email||'—')} · ${dt(o.created_at)} · #${o.id}</span></div><b class="price">${R(o.total)}</b></div>
+<div class="tabs">${['todos','manha','tarde','qualquer'].map(k=>`<button class="tab ${opk==k?'on':''}" onclick="opk='${k}';go()">${k=='todos'?'🕒 Todos os horários':PKL[k]}</button>`).join('')}</div>
+${l.map(o=>`<div class="ord ${o.status}"><div class="row" style="border:0;padding:0"><div><b style="font-size:16px">${E(o.who)}</b> ${stTag(o.status)} ${pkTag(o)}<br><span class="mu" style="font-size:12px">✉️ ${E(o.email||'—')} · #${o.id}</span><br><span style="font-size:13px;font-weight:600">🕒 ${dt(o.created_at)} às ${tm(o.created_at)} <span class="mu" style="font-weight:400">(${ago(o.created_at)})</span>${o.status!='concluido'&&Date.now()-new Date(o.created_at)>108e5?' <span class="tag w">⚠️ aguardando</span>':''}</span></div><b class="price">${R(o.total)}</b></div>
 <div class="steps">${[1,2,3].map(n=>`<i class="${n<=stp(o.status)?'on':''}"></i>`).join('')}</div>
 <div class="mu" style="font-size:13px">${o.items.map(i=>`${i.q}x ${E(i.name)} ${E(i.v)} (${E(i.c)})`).join('<br>')}</div>
 ${noteBox(o)}<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${adm?`<select onchange="setSt(${o.id},this.value)" style="width:auto;margin:0">${Object.keys(ST).map(k=>`<option value="${k}" ${o.status==k?'selected':''}>${ST[k]}</option>`).join('')}</select><button class="btn s" onclick="oedit(${o.id})">✏️ Editar</button><button class="btn s d" onclick="odel(${o.id})">🗑 Excluir</button>`:`${o.status!='producao'?`<button class="btn" onclick="setSt(${o.id},'producao')">🔧 Em produção</button>`:''}${o.status!='concluido'?`<button class="btn p" onclick="setSt(${o.id},'concluido')">📦 Pode vir buscar</button>`:''}`}${o.status=='concluido'?waBtn(o):''}</div></div>`).join('')||'<div class="card mu" style="text-align:center">Nenhum pedido encontrado.</div>'}`}
 function oedit(id){
- const o=O.find(x=>x.id==id),d={who:o.who,email:o.email||'',phone:o.phone||'',note:o.note||'',items:o.items.map(i=>({...i}))},m=document.createElement('div');m.className='modal';
+ const o=O.find(x=>x.id==id),d={who:o.who,email:o.email||'',phone:o.phone||'',note:o.note||'',pickup:o.pickup||'qualquer',items:o.items.map(i=>({...i}))},m=document.createElement('div');m.className='modal';
  const flat=P.flatMap(p=>p.vars.map(v=>({id:p.id,name:p.name,v:v.n,p:v.p,sku:skuOf(v,(p.colors.split(',')[0]||'').trim()),c:(p.colors.split(',')[0]||'').trim()}))),tot=()=>d.items.reduce((a,i)=>a+i.p*i.q,0);
- const draw=()=>{m.innerHTML=`<div><h2>✏️ Editar pedido #${o.id}</h2><label>Nome do revendedor</label><input id="ow" value="${E(d.who)}"><label>E-mail</label><input id="oe" value="${E(d.email)}"><label>WhatsApp</label><input id="op" value="${E(d.phone)}"><label>📝 Observação</label><textarea id="ok" rows="3">${E(d.note)}</textarea>
+ const draw=()=>{m.innerHTML=`<div><h2>✏️ Editar pedido #${o.id}</h2><p class="mu" style="margin-top:-6px">🕒 Feito em ${dt(o.created_at)} às ${tm(o.created_at)}</p><label>Nome do revendedor</label><input id="ow" value="${E(d.who)}"><label>E-mail</label><input id="oe" value="${E(d.email)}"><label>WhatsApp</label><input id="op" value="${E(d.phone)}"><label>🕒 Horário de busca</label><select id="opk">${Object.keys(PKL).map(k=>`<option value="${k}" ${d.pickup==k?'selected':''}>${PKL[k]}</option>`).join('')}</select><label>📝 Observação</label><textarea id="ok" rows="3">${E(d.note)}</textarea>
 ${d.items.map((i,k)=>`<div class="ord" style="padding:10px"><b>${E(i.name)}</b> <span class="mu">${E(i.v)}</span> <button class="btn s d" data-r="${k}" style="float:right">✕</button><div style="display:grid;grid-template-columns:70px 1fr 95px;gap:8px;margin-top:8px"><div><label>Qtd</label><input type="number" min="1" value="${i.q}" data-f="q" data-k="${k}" style="margin:0"></div><div><label>Cor</label><input value="${E(i.c)}" data-f="c" data-k="${k}" style="margin:0"></div><div><label>Preço un.</label><input type="number" step="0.01" value="${i.p}" data-f="p" data-k="${k}" style="margin:0"></div></div></div>`).join('')}
 <label>Adicionar item</label><div style="display:flex;gap:8px"><select id="oa" style="margin:0">${flat.map((x,k)=>`<option value="${k}">${E(x.name)} — ${E(x.v)} (${R(x.p)})</option>`).join('')}</select><button class="btn p" id="oaa">+</button></div>
 <div class="row"><b>Total</b><span class="price" id="ot">${R(tot())}</span></div><button class="btn p" style="width:100%" id="os">Salvar alterações</button><button class="btn" style="width:100%;margin-top:8px" id="oc">Cancelar</button></div>`;
- m.querySelector('#ow').oninput=e=>d.who=e.target.value;m.querySelector('#oe').oninput=e=>d.email=e.target.value;m.querySelector('#op').oninput=e=>d.phone=e.target.value;m.querySelector('#ok').oninput=e=>d.note=e.target.value;
+ m.querySelector('#ow').oninput=e=>d.who=e.target.value;m.querySelector('#oe').oninput=e=>d.email=e.target.value;m.querySelector('#op').oninput=e=>d.phone=e.target.value;m.querySelector('#ok').oninput=e=>d.note=e.target.value;m.querySelector('#opk').onchange=e=>d.pickup=e.target.value;
  m.querySelectorAll('[data-f]').forEach(inp=>inp.oninput=()=>{const f=inp.dataset.f,i=d.items[inp.dataset.k];i[f]=f=='c'?inp.value:f=='q'?Math.max(1,parseInt(inp.value)||1):Math.max(0,parseFloat(inp.value)||0);if(f=='c'){const pp=P.find(x=>x.id==i.id),vv=pp&&pp.vars.find(x=>x.n==i.v);if(vv)i.sku=skuOf(vv,i.c.trim())}m.querySelector('#ot').textContent=R(tot())});
  m.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{d.items.splice(b.dataset.r,1);draw()});
  m.querySelector('#oaa').onclick=()=>{const x=flat[m.querySelector('#oa').value];if(x){d.items.push({id:x.id,name:x.name,v:x.v,c:x.c,p:x.p,q:1,sku:x.sku});draw()}};
  m.querySelector('#oc').onclick=()=>m.remove();
  m.querySelector('#os').onclick=async()=>{if(!d.items.length)return alert('O pedido precisa ter ao menos 1 item');
-  const r=await sb.from('orders').update({who:d.who.trim()||o.who,email:d.email.trim()||null,phone:d.phone.replace(/\D/g,'')||null,note:d.note.trim()||null,items:d.items,total:Number(tot().toFixed(2))}).eq('id',id);if(err(r.error))return;m.remove();refresh()}};
+  const r=await sb.from('orders').update({who:d.who.trim()||o.who,email:d.email.trim()||null,phone:d.phone.replace(/\D/g,'')||null,note:d.note.trim()||null,pickup:d.pickup,items:d.items,total:Number(tot().toFixed(2))}).eq('id',id);if(err(r.error))return;m.remove();refresh()}};
  draw();document.body.appendChild(m)}
 async function setSt(id,st){if(err((await sb.rpc('set_order_status',{pedido_id:id,novo_status:st})).error))return;refresh()}
 async function odel(id){if(confirm('Excluir este pedido?')){if(err((await sb.from('orders').delete().eq('id',id)).error))return;refresh()}}
@@ -176,21 +231,23 @@ function resV(){const cats=['Todos',...new Set(P.map(p=>p.cat))],list=P.filter(p
 <select id="c${p.id}">${cs.map(c=>`<option>${E(c)}</option>`).join('')||'<option>Único</option>'}</select>
 <div class="row" style="border:0;padding:0"><input id="q${p.id}" type="number" min="1" value="1" style="width:70px;margin:0"><span class="price" id="pr${p.id}">${R(p.vars[0].p)}</span></div>
 <button class="btn p" style="width:100%;margin-top:10px" onclick="add(${p.id})">Adicionar</button></div>`}).join('')||'<p class="mu">Nada encontrado.</p>'}</div>
-${O.length?`<h2>Meus pedidos</h2>${O.map(o=>`<div class="ord ${o.status}"><div class="row" style="border:0;padding:0"><div>${stTag(o.status)}<br><span class="mu" style="font-size:12px">${dt(o.created_at)} · #${o.id}</span></div><b class="price">${R(o.total)}</b></div><div class="steps">${[1,2,3].map(n=>`<i class="${n<=({novo:1,producao:2,concluido:3}[o.status]||1)?'on':''}"></i>`).join('')}</div><div class="mu" style="font-size:13px">${o.items.map(i=>`${i.q}x ${E(i.name)} ${E(i.v)} (${E(i.c)})`).join('<br>')}</div>${noteBox(o)}</div>`).join('')}`:''}<div style="height:90px"></div></div>
+${O.length?`<h2>Meus pedidos</h2>${O.map(o=>`<div class="ord ${o.status}"><div class="row" style="border:0;padding:0"><div>${stTag(o.status)} ${pkTag(o)}<br><span class="mu" style="font-size:12px">${dt(o.created_at)} às ${tm(o.created_at)} · #${o.id}</span></div><b class="price">${R(o.total)}</b></div><div class="steps">${[1,2,3].map(n=>`<i class="${n<=({novo:1,producao:2,concluido:3}[o.status]||1)?'on':''}"></i>`).join('')}</div><div class="mu" style="font-size:13px">${o.items.map(i=>`${i.q}x ${E(i.name)} ${E(i.v)} (${E(i.c)})`).join('<br>')}</div>${noteBox(o)}</div>`).join('')}`:''}<div style="height:90px"></div></div>
 ${n?`<div class="cartbar"><button class="btn p" style="width:100%;padding:15px;font-size:16px" onclick="cartV()">🛒 ${n} itens · ${R(tot)} — Finalizar</button></div>`:''}`}
 function rl(el){const s=el.selectionStart,id=el.id;go();const i=document.getElementById(id);i.focus();i.setSelectionRange(s,s)}
 function pp(id){$('#pr'+id).textContent=R(P.find(x=>x.id==id).vars[$('#v'+id).value].p)}
 function add(id){const p=P.find(x=>x.id==id),v=p.vars[$('#v'+id).value],c=$('#c'+id).value,k=Math.max(1,parseInt($('#q'+id).value)||1);
  const x=cart.find(i=>i.id==id&&i.v==v.n&&i.c==c);x?x.q+=k:cart.push({id,name:p.name,v:v.n,c,p:v.p,q:k,sku:skuOf(v,c)});go()}
-function cartV(){let nt='';const m=document.createElement('div');m.className='modal';
+function cartV(){let nt='',pk='qualquer';const m=document.createElement('div');m.className='modal';
  const draw=()=>{const t=cart.reduce((a,i)=>a+i.p*i.q,0);m.innerHTML=`<div><h2>🛒 Seu pedido</h2><label>Nome do revendedor</label><input id="rn" value="${E(me.name)}"><label>WhatsApp (avisamos quando estiver pronto)</label><input id="rt" type="tel" value="${E(me.phone||(()=>{try{return localStorage.getItem('rvphone')||''}catch(e){return ''}})())}">
 ${cart.map((i,k)=>`<div class="row"><div><b>${E(i.name)}</b><br><span class="mu">${E(i.v)} · ${E(i.c)} · ${R(i.p)}</span></div><div>${i.q}x <b>${R(i.p*i.q)}</b> <button class="btn s d" data-k="${k}">✕</button></div></div>`).join('')}
+<label style="display:block;margin-top:10px">🕒 Em qual parte do dia você vai buscar?</label><div class="tabs" style="margin:4px 0 0">${Object.keys(PKL).map(k=>`<button class="tab ${pk==k?'on':''}" data-pk="${k}">${PKL[k]}</button>`).join('')}</div>
 <label style="display:block;margin-top:10px">📝 Observação (opcional)</label><textarea id="rk" rows="3" placeholder="Ex.: bordar o nome do pet, cor especial, prazo..."></textarea>
 <div class="row"><b>Total</b><span class="price">${R(t)}</span></div><button class="btn p" style="width:100%" id="sd">Enviar pedido</button><button class="btn" style="width:100%;margin-top:8px" id="cl">Fechar</button></div>`;
  m.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{cart.splice(b.dataset.k,1);if(!cart.length){m.remove()}else draw();go()});
  m.querySelector('#cl').onclick=()=>m.remove();
- m.querySelector('#rk').value=nt;m.querySelector('#rk').oninput=e=>nt=e.target.value;m.querySelector('#sd').onclick=async()=>{const ph=$('#rt').value.replace(/\D/g,'');if(ph.length<10)return alert('Informe o WhatsApp com DDD para avisarmos quando estiver pronto');try{localStorage.setItem('rvphone',ph)}catch(e){}const r=await sb.from('orders').insert({user_id:me.id,email:me.email,phone:ph,note:nt.trim()||null,who:$('#rn').value.trim()||me.name,items:cart,total:t});if(err(r.error))return;cart=[];m.remove();alert('Pedido enviado ao admin! ✅');refresh()}};
+ m.querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{pk=b.dataset.pk;m.querySelectorAll('[data-pk]').forEach(x=>x.classList.toggle('on',x.dataset.pk==pk))});m.querySelector('#rk').value=nt;m.querySelector('#rk').oninput=e=>nt=e.target.value;m.querySelector('#sd').onclick=async()=>{const ph=$('#rt').value.replace(/\D/g,'');if(ph.length<10)return alert('Informe o WhatsApp com DDD para avisarmos quando estiver pronto');try{localStorage.setItem('rvphone',ph)}catch(e){}const r=await sb.from('orders').insert({user_id:me.id,email:me.email,phone:ph,pickup:pk,note:nt.trim()||null,who:$('#rn').value.trim()||me.name,items:cart,total:t});if(err(r.error))return;cart=[];m.remove();alert('Pedido enviado ao admin! ✅');refresh()}};
  draw();document.body.appendChild(m)}
-setInterval(()=>{if(me&&me.role!='rev'&&!document.querySelector('.modal')&&!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))refresh()},30000);
+setInterval(()=>{if(me&&me.role!='rev'&&!$('#msgs')&&!document.querySelector('.modal')&&!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))refresh()},30000);
+setInterval(async()=>{if(me&&me.role!='prod'&&$('#msgs')){await loadMsgs();drawMsgs();markRead(curConv())}},8000);
 boot();
 </script></body></html>
