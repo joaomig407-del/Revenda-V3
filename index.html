@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; img-src 'self' data: blob: https://rngylwfuhgmclexvfqiy.supabase.co; connect-src https://rngylwfuhgmclexvfqiy.supabase.co wss://rngylwfuhgmclexvfqiy.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<script>if(top!==self){document.documentElement.style.display='none';top.location=self.location}</script>
 <title>Portal do Revendedor</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -61,6 +64,7 @@ const SUPABASE_URL='https://rngylwfuhgmclexvfqiy.supabase.co', SUPABASE_KEY='eyJ
 /* ================================================================ */
 const $=s=>document.querySelector(s),R=n=>'R$ '+Number(n).toFixed(2).replace('.',','),E=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const okImg=u=>typeof u=='string'&&u.startsWith(SUPABASE_URL+'/storage/')?u:'';
 let me=null,P=[],U=[],O=[],cart=[],cat='Todos',q='',atab='dash',pfile=null,oemail='',ost='todos';
 const err=e=>{if(e){alert(e.message);return true}};
 const dt=s=>new Date(s).toLocaleDateString('pt-BR');
@@ -81,17 +85,18 @@ function loginV(reg){return`<div class="login g">${Array.from({length:14},()=>`<
 ${reg?'<label>Seu nome</label><input id="n"><label>WhatsApp (com DDD)</label><input id="tel" type="tel" placeholder="11999999999">':''}<label>E-mail</label><input id="e" type="email"><label>Senha</label><input id="p" type="password" onkeydown="if(event.key=='Enter')this.closest('.card').querySelector('.btn.p').click()">
 <button class="btn p" style="width:100%" onclick="${reg?'signup()':'login()'}">${reg?'Cadastrar':'Entrar'}</button>
 <p style="text-align:center"><a href="#" onclick="$('#app').innerHTML=loginV(${!reg});return false" style="color:var(--ac)">${reg?'Já tenho conta':'Quero ser revendedor'}</a></p><p style="text-align:center;margin:14px 0 0;font-size:12px" class="mu">Feito por <b>João Miguel</b></p></div></div>`}
-async function login(){const b=$('.login .btn.p'),h=b.innerHTML;b.disabled=true;b.innerHTML='<span class="spin"></span>Entrando...';
+let tries=0,lockUntil=0;
+async function login(){if(Date.now()<lockUntil)return alert('Muitas tentativas. Aguarde '+Math.ceil((lockUntil-Date.now())/1000)+'s.');const b=$('.login .btn.p'),h=b.innerHTML;b.disabled=true;b.innerHTML='<span class="spin"></span>Entrando...';
  const{data,error}=await sb.auth.signInWithPassword({email:$('#e').value.trim().toLowerCase(),password:$('#p').value});
- if(error){b.disabled=false;b.innerHTML=h;const c=$('.login .card');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');return}
- await enter(data.user.id);if(!me&&$('.login .btn.p')){const x=$('.login .btn.p');x.disabled=false;x.innerHTML=h}}
+ if(error){if(++tries>=5)lockUntil=Date.now()+60000*Math.min(tries-4,10);b.disabled=false;b.innerHTML=h;const c=$('.login .card');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');return}
+ tries=0;await enter(data.user.id);if(!me&&$('.login .btn.p')){const x=$('.login .btn.p');x.disabled=false;x.innerHTML=h}}
 function splash(n){const d=document.createElement('div');d.className='splash';
  d.innerHTML='<div><div class="big">🐾</div><b>Bem-vindo, '+E(n.split(' ')[0])+'!</b></div>'+Array.from({length:40},()=>`<i style="left:${Math.random()*100}%;background:hsl(${Math.random()*360},90%,65%);animation-delay:${Math.random()*.6}s;animation-duration:${1.2+Math.random()}s"></i>`).join('');
  document.body.appendChild(d);setTimeout(()=>d.remove(),2100)}
 async function signup(){const tel=$('#tel').value.replace(/\D/g,''),n=$('#n').value.trim(),e=$('#e').value.trim().toLowerCase(),p=$('#p').value;
  if(!n||!e||p.length<6||tel.length<10)return alert('Preencha tudo (WhatsApp com DDD e senha com 6+ caracteres)');
  const{error}=await sb.auth.signUp({email:e,password:p,options:{data:{name:n,phone:tel}}});if(err(error))return;
- await sb.auth.signOut();alert(['admin@admin.com','producao@admin.com'].includes(e)?'Conta criada! Agora entre.':'Cadastro enviado! Aguarde aprovação.');$('#app').innerHTML=loginV()}
+ await sb.auth.signOut();alert('Cadastro enviado! Aguarde aprovação.');$('#app').innerHTML=loginV()}
 async function out(){if(chan){sb.removeChannel(chan);chan=null}await sb.auth.signOut();me=null;cart=[];chatRev=null;go()}
 const hdr=t=>`<header><span class="g" style="border-radius:10px;padding:5px 8px">🐾</span><b>${t}</b><span class="mu" style="font-size:12px">${E(me.name)}</span>${me.role=='rev'?`<button class="btn s" onclick="chatR()">💬${unR()?` <span class="dot">${unR()}</span>`:''}</button>`:''}<button class="btn s" onclick="out()">Sair</button></header>`;
 /* ---------- ADMIN ---------- */
@@ -134,7 +139,7 @@ async function loadMsgs(){if(me.role=='prod'||me.role=='owner'){MSG=[];return}co
 function rt(){if(chan||me.role=='prod'||me.role=='owner')return;chan=sb.channel('msgs').on('postgres_changes',{event:'*',schema:'public',table:'messages'},async()=>{await loadMsgs();if($('#msgs')){drawMsgs();markRead(curConv())}else if(!typing())go()}).subscribe()}
 async function markRead(id){if(!id)return;const mine=me.role=='admin';if(!MSG.some(x=>x.rev_id==id&&x.from_admin!=mine&&!x.read))return;await sb.rpc('mark_read',{conv:id});MSG.forEach(x=>{if(x.rev_id==id&&x.from_admin!=mine)x.read=true})}
 function bubbles(id){const l=cmsgs(id);let last='';return l.map(x=>{const mine=me.role=='admin'?x.from_admin:!x.from_admin,d=dt(x.created_at),sep=d!=last?(last=d,`<div style="text-align:center"><span class="tag">${d}</span></div>`):'';
- return sep+`<div class="bub ${mine?'me':'ot'}">${x.img?`<img src="${E(x.img)}" onclick="window.open(this.src)">`:''}${x.body?E(x.body).replace(/\n/g,'<br>'):''}<small>${new Date(x.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}${mine?(x.read?' ✓✓':' ✓'):''}</small></div>`}).join('')||'<p class="mu" style="text-align:center">Nenhuma mensagem ainda. Diga olá! 👋</p>'}
+ return sep+`<div class="bub ${mine?'me':'ot'}">${okImg(x.img)?`<img src="${E(okImg(x.img))}" onclick="window.open(this.src)">`:''}${x.body?E(x.body).replace(/\n/g,'<br>'):''}<small>${new Date(x.created_at).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}${mine?(x.read?' ✓✓':' ✓'):''}</small></div>`}).join('')||'<p class="mu" style="text-align:center">Nenhuma mensagem ainda. Diga olá! 👋</p>'}
 function drawMsgs(force){const b=$('#msgs'),id=curConv();if(!b||!id)return;const l=cmsgs(id),sig=l.length+'|'+l.filter(x=>x.read).length;if(!force&&sig==lastSig)return;lastSig=sig;b.innerHTML=bubbles(id);b.scrollTop=b.scrollHeight}
 const chatInput=()=>`<div style="display:flex;gap:8px;margin-top:8px;align-items:center"><label class="btn" style="margin:0;cursor:pointer;font-size:16px">📎<input type="file" accept="image/*" hidden onchange="cimg(this)"></label><input id="ci" placeholder="Digite uma mensagem..." style="margin:0" onkeydown="if(event.key=='Enter')csend()"><button class="btn p" onclick="csend()">➤</button></div>`;
 async function csend(img){const id=curConv(),t=$('#ci'),body=(t?t.value:'').trim();if(!id||(!body&&!img))return;if(t)t.value='';
@@ -360,8 +365,8 @@ function prodV(){return hdr('Produção')+`<div class="wrap"><div class="card g"
 function resV(){const cats=['Todos',...new Set(P.map(p=>p.cat))],list=P.filter(p=>(cat=='Todos'||p.cat==cat)&&p.name.toLowerCase().includes(q.toLowerCase()));
  const tot=cart.reduce((a,i)=>a+i.p*i.q,0),n=cart.reduce((a,i)=>a+i.q,0);
  return hdr('Preços de Revenda')+`<div class="wrap"><div class="card g" style="color:#fff;margin-bottom:12px"><b style="font-size:18px">Olá, ${E(me.name)} 👋</b><br>Escolha o produto, cor e quantidade. O total é calculado automaticamente.</div>${O.some(o=>o.status=='concluido')?`<div class="card" style="background:#16a34a;color:#fff;margin-bottom:12px"><b>🎉 ${O.filter(o=>o.status=='concluido').length} pedido(s) pronto(s): pode vir buscar!</b></div>`:''}
-<input id="qs" placeholder="🔍 Buscar produto..." value="${E(q)}" oninput="q=this.value;rl(this)"><div class="tabs">${cats.map(c=>`<button class="tab ${cat==c?'on':''}" onclick="cat='${E(c)}';go()">${E(c)}</button>`).join('')}</div>
-<div class="grid">${list.map(p=>{const cs=p.colors.split(',').map(s=>s.trim()).filter(Boolean);return`<div class="card"><div class="img" style="${p.img?`background-image:url(${E(p.img)})`:''}">${p.img?'':E(p.emo)}</div><b>${E(p.name)}</b>
+<input id="qs" placeholder="🔍 Buscar produto..." value="${E(q)}" oninput="q=this.value;rl(this)"><div class="tabs">${cats.map(c=>`<button class="tab ${cat==c?'on':''}" data-c="${E(c)}" onclick="cat=this.dataset.c;go()">${E(c)}</button>`).join('')}</div>
+<div class="grid">${list.map(p=>{const cs=p.colors.split(',').map(s=>s.trim()).filter(Boolean);return`<div class="card"><div class="img" style="${okImg(p.img)?`background-image:url('${E(okImg(p.img))}')`:''}">${okImg(p.img)?'':E(p.emo)}</div><b>${E(p.name)}</b>
 <select id="v${p.id}" onchange="pp(${p.id})">${p.vars.map((v,i)=>`<option value="${i}">${E(v.n)} — ${R(v.p)}</option>`).join('')}</select>
 <select id="c${p.id}">${cs.map(c=>`<option>${E(c)}</option>`).join('')||'<option>Único</option>'}</select>
 <div class="row" style="border:0;padding:0"><input id="q${p.id}" type="number" min="1" value="1" style="width:70px;margin:0"><span class="price" id="pr${p.id}">${R(p.vars[0].p)}</span></div>
@@ -384,5 +389,7 @@ ${cart.map((i,k)=>`<div class="row"><div><b>${E(i.name)}</b><br><span class="mu"
  draw();document.body.appendChild(m)}
 setInterval(()=>{if(me&&me.role!='rev'&&!$('#msgs')&&!document.querySelector('.modal')&&!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))refresh()},30000);
 setInterval(async()=>{if(me&&(me.role=='admin'||me.role=='rev')&&$('#msgs')){await loadMsgs();drawMsgs();markRead(curConv())}},8000);
+let idle;const rst=()=>{clearTimeout(idle);if(me)idle=setTimeout(()=>{alert('Sessão encerrada por inatividade.');out()},30*60000)};
+['click','keydown','touchstart','mousemove'].forEach(e=>addEventListener(e,rst,{passive:true}));
 boot();
 </script></body></html>
