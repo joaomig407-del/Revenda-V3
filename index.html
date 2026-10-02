@@ -12,7 +12,7 @@
 :root{--bg:#f4f5fb;--card:#fff;--tx:#191b2a;--mu:#6b7085;--ac:#7c5cff;--ac2:#ff6bb5;--bd:#e4e6f2;--ok:#16a34a;--rd:#e5484d}
 @media(prefers-color-scheme:dark){:root{--bg:#0e0f1a;--card:#171930;--tx:#eef0ff;--mu:#9a9fc0;--bd:#262a4a}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px system-ui,sans-serif}
-button,input,select,textarea{font:inherit;color:inherit}.g{background:linear-gradient(135deg,var(--ac),var(--ac2))}
+button,input,select,textarea{font:inherit;color:inherit}.g,.card.g{background:linear-gradient(135deg,var(--ac),var(--ac2));border-color:transparent}
 header{position:sticky;top:0;z-index:5;background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;padding:10px 14px}header b{flex:1;font-size:17px}
 .wrap{max-width:1000px;margin:0 auto;padding:14px}
 .btn{border:0;border-radius:12px;padding:10px 14px;cursor:pointer;background:var(--bd);font-weight:600}.btn.p{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff}.btn.d{background:var(--rd);color:#fff}.btn.s{padding:6px 10px;font-size:13px;border-radius:9px}
@@ -40,7 +40,7 @@ input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--bd);bo
 .shake{animation:shake .45s!important}@keyframes shake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid #fff6;border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite;vertical-align:-2px;margin-right:8px}@keyframes rot{to{transform:rotate(360deg)}}
 .btn.p{position:relative;overflow:hidden}.btn.p::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,#fff7,transparent);transform:skewX(-20deg);transition:left .6s}.btn.p:hover::after{left:130%}
-.splash{position:fixed;inset:0;z-index:50;display:grid;place-items:center;text-align:center;color:#fff;background:linear-gradient(135deg,var(--ac),var(--ac2));animation:sp 2s forwards}@keyframes sp{0%{opacity:0}15%,75%{opacity:1}100%{opacity:0;visibility:hidden}}
+.splash{position:fixed;inset:0;z-index:50;pointer-events:none;display:grid;place-items:center;text-align:center;color:#fff;background:linear-gradient(135deg,var(--ac),var(--ac2));animation:sp 2s forwards}@keyframes sp{0%{opacity:0}15%,75%{opacity:1}100%{opacity:0;visibility:hidden}}
 .splash b{display:block;font-size:30px;animation:pop .6s both .15s}.splash .big{font-size:80px;animation:bob 1s infinite}
 .splash i{position:absolute;top:-20px;width:10px;height:14px;animation:fall 1.8s linear forwards}@keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
 @media(prefers-reduced-motion:reduce){.pw,.login.g,.bob{animation:none}}
@@ -77,6 +77,7 @@ async function boot(){
  const{data:{session}}=await sb.auth.getSession();
  if(session)await enter(session.user.id,true);else go()}
 async function enter(id,silent){
+ document.querySelectorAll('.modal,.splash').forEach(e=>e.remove());
  const{data}=await sb.from('profiles').select('*').eq('id',id).single();
  if(!data||data.status!='active'){if(!silent||data)alert(!data?'Acesso removido.':data.status=='pending'?'Cadastro aguardando aprovação do admin.':'Acesso bloqueado.');await sb.auth.signOut();me=null;return go()}
  me=data;await load();go();rt();if(!silent)splash(data.name)}
@@ -92,12 +93,12 @@ async function login(){if(Date.now()<lockUntil)return alert('Muitas tentativas. 
  tries=0;await enter(data.user.id);if(!me&&$('.login .btn.p')){const x=$('.login .btn.p');x.disabled=false;x.innerHTML=h}}
 function splash(n){const d=document.createElement('div');d.className='splash';
  d.innerHTML='<div><div class="big">🐾</div><b>Bem-vindo, '+E(n.split(' ')[0])+'!</b></div>'+Array.from({length:40},()=>`<i style="left:${Math.random()*100}%;background:hsl(${Math.random()*360},90%,65%);animation-delay:${Math.random()*.6}s;animation-duration:${1.2+Math.random()}s"></i>`).join('');
- document.body.appendChild(d);setTimeout(()=>d.remove(),2100)}
+ document.body.appendChild(d);d.addEventListener('animationend',e=>{if(e.target===d)d.remove()});setTimeout(()=>d.remove(),2100)}
 async function signup(){const tel=$('#tel').value.replace(/\D/g,''),n=$('#n').value.trim(),e=$('#e').value.trim().toLowerCase(),p=$('#p').value;
  if(!n||!e||p.length<6||tel.length<10)return alert('Preencha tudo (WhatsApp com DDD e senha com 6+ caracteres)');
  const{error}=await sb.auth.signUp({email:e,password:p,options:{data:{name:n,phone:tel}}});if(err(error))return;
  await sb.auth.signOut();alert('Cadastro enviado! Aguarde aprovação.');$('#app').innerHTML=loginV()}
-async function out(){if(chan){sb.removeChannel(chan);chan=null}await sb.auth.signOut();me=null;cart=[];chatRev=null;go()}
+async function out(){document.querySelectorAll('.modal,.splash').forEach(e=>e.remove());if(chan){sb.removeChannel(chan);chan=null}await sb.auth.signOut();me=null;cart=[];chatRev=null;go()}
 const hdr=t=>`<header><span class="g" style="border-radius:10px;padding:5px 8px">🐾</span><b>${t}</b><span class="mu" style="font-size:12px">${E(me.name)}</span>${me.role=='rev'?`<button class="btn s" onclick="chatR()">💬${unR()?` <span class="dot">${unR()}</span>`:''}</button>`:''}<button class="btn s" onclick="out()">Sair</button></header>`;
 /* ---------- ADMIN ---------- */
 function adminV(){const tot=O.reduce((a,o)=>a+Number(o.total),0),T=[['dash','📊 Painel'],['prod','📦 Produtos'],['rev','👥 Revendedores'],['ped','🧾 Pedidos'],['chat','💬 Chat'+(unA()?' 🔴'+unA():'')]];let b='';
