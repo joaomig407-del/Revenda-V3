@@ -129,6 +129,9 @@ function pedit(id){const p=P.find(x=>x.id==id)||{name:'',cat:'Camas',emo:'📦',
   const r=id?await sb.from('products').update(o).eq('id',id):await sb.from('products').insert(o);if(err(r.error))return;m.remove();refresh()}}
 const itL=i=>{const k=i.sku||skuOf((P.find(p=>p.id==i.id)||{vars:[]}).vars.find(v=>v.n==i.v),i.c);return i.q+'x '+(k?'<b>'+E(k)+'</b>':E(i.name)+' '+E(i.v)+' ('+E(i.c)+')')};
 const ST={novo:'🆕 Novo',producao:'🔧 Em produção',concluido:'📦 Pode vir buscar'};
+const canEst=()=>me&&(me.role=='admin'||me.role=='prod');
+const itE=(o,i,k)=>`<label style="display:flex;align-items:center;gap:8px;padding:4px 0;${canEst()?'cursor:pointer':''}"><input type="checkbox" ${i.est?'checked':''} ${canEst()?'':'disabled'} onchange="setEst(${o.id},${k},this.checked)" style="width:18px;height:18px;margin:0;padding:0;flex:none"><span>${itL(i)}</span>${i.est?'<span class="tag ok">✓ em estoque</span>':''}</label>`;
+async function setEst(id,k,v){const r=await sb.rpc('set_item_estoque',{p_order:id,p_idx:k,p_val:v});if(err(r.error)){refresh();return}const o=O.find(x=>x.id==id);if(o&&o.items[k])o.items[k].est=v;const y=window.scrollY;go();window.scrollTo(0,y)}
 const stTag=s=>`<span class="tag ${s=='concluido'?'ok':s=='producao'?'w':'b'}">${ST[s]||ST.novo}</span>`;
 function noteBox(o){return o.note?`<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:#f59e0b22;font-size:13px">📝 <b>Observação:</b> ${E(o.note)}</div>`:''}
 let MSG=[],M={},chatRev=null,cq='',cf='',TG=[],chan=null,lastSig='';
@@ -341,7 +344,7 @@ function ordersV(adm,ro){
 <div class="tabs">${['todos','manha','tarde','qualquer'].map(k=>`<button class="tab ${opk==k?'on':''}" onclick="opk='${k}';go()">${k=='todos'?'🕒 Todos os horários':PKL[k]}</button>`).join('')}</div>
 ${l.map(o=>`<div class="ord ${o.status}"><div class="row" style="border:0;padding:0"><div><b style="font-size:16px">${E(o.who)}</b> ${stTag(o.status)} ${pkTag(o)}<br><span class="mu" style="font-size:12px">✉️ ${E(o.email||'—')} · #${o.id}</span><br><span style="font-size:13px;font-weight:600">🕒 ${dt(o.created_at)} às ${tm(o.created_at)} <span class="mu" style="font-weight:400">(${ago(o.created_at)})</span>${o.status!='concluido'&&Date.now()-new Date(o.created_at)>108e5?' <span class="tag w">⚠️ aguardando</span>':''}</span></div><b class="price">${R(o.total)}</b></div>
 <div class="steps">${[1,2,3].map(n=>`<i class="${n<=stp(o.status)?'on':''}"></i>`).join('')}</div>
-<div class="mu" style="font-size:13px">${o.items.map(itL).join('<br>')}</div>
+<div class="mu" style="font-size:13px">${o.items.map((i,k)=>itE(o,i,k)).join('')}</div>
 ${noteBox(o)}<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${ro?'':adm?`<select onchange="setSt(${o.id},this.value)" style="width:auto;margin:0">${Object.keys(ST).map(k=>`<option value="${k}" ${o.status==k?'selected':''}>${ST[k]}</option>`).join('')}</select><button class="btn s" onclick="oedit(${o.id})">✏️ Editar</button><button class="btn s d" onclick="odel(${o.id})">🗑 Excluir</button>`:`${o.status!='producao'?`<button class="btn" onclick="setSt(${o.id},'producao')">🔧 Em produção</button>`:''}${o.status!='concluido'?`<button class="btn p" onclick="setSt(${o.id},'concluido')">📦 Pode vir buscar</button>`:''}`}${o.status=='concluido'?waBtn(o):''}</div></div>`).join('')||'<div class="card mu" style="text-align:center">Nenhum pedido encontrado.</div>'}`}
 function oedit(id){
  const o=O.find(x=>x.id==id),d={who:o.who,email:o.email||'',phone:o.phone||'',note:o.note||'',pickup:o.pickup||'qualquer',items:o.items.map(i=>({...i}))},m=document.createElement('div');m.className='modal';
