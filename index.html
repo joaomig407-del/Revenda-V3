@@ -49,9 +49,7 @@ input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--bd);bo
 #msgs{height:50vh;overflow-y:auto;padding:8px;background:var(--bg);border-radius:14px;border:1px solid var(--bd)}
 .chip{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:99px;margin:2px}.dot{background:#ef4444;color:#fff;border-radius:99px;font-size:11px;padding:1px 7px;font-weight:700}
 .crow{display:flex;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--bd);cursor:pointer}.crow:hover{background:var(--bg)}.av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;flex:none}
-
 .bars{display:flex;align-items:flex-end;gap:3px;height:160px;overflow-x:auto;padding-top:8px}.bars>div{flex:1;min-width:16px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;font-size:10px;color:var(--mu)}.bars i{display:block;width:100%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--ac),var(--ac2));min-height:2px}.hb{height:8px;border-radius:9px;background:var(--bd);overflow:hidden;margin-top:4px}.hb i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--ac),var(--ac2))}.stat small{opacity:.85}
-
 .sep-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .sep-btn{display:flex;align-items:center;justify-content:center;gap:8px}
 @media(max-width:600px){.sep-actions{grid-template-columns:1fr}.wrap{padding:14px 12px 32px}header{padding:10px 12px}header b{font-size:15px}.card{padding:14px;border-radius:18px}.grid{grid-template-columns:1fr;gap:12px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stat{padding:13px;border-radius:17px}.stat b{font-size:22px}.btn{min-height:42px}.btn.s{min-height:36px}.row{gap:8px}.ord{padding:14px;border-radius:17px}.tabs{flex-wrap:nowrap;overflow-x:auto}.tab{padding:8px 12px;font-size:13px}.img{height:150px}.modal>div{padding:16px;border-radius:20px 20px 0 0}}
@@ -60,9 +58,7 @@ input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--bd);bo
 .logo-preview img{max-width:90%;max-height:80px;object-fit:contain}
 </style></head><body><div id="app"></div>
 <script>
-/* ====== CONFIGURE AQUI (Supabase > Project Settings > API) ====== */
 const SUPABASE_URL='https://rngylwfuhgmclexvfqiy.supabase.co', SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuZ3lsd2Z1aGdtY2xleHZmcWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MzUwMTUsImV4cCI6MjEwNjIxMTAxNX0.LbYlRCXCvPQOtwiid27ZNDs8eXVKSWvv8OOR1oBMPPk';
-/* ================================================================ */
 const $=s=>document.querySelector(s),R=n=>'R$ '+Number(n).toFixed(2).replace('.',','),E=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const okImg=u=>typeof u=='string'&&u.startsWith(SUPABASE_URL+'/storage/')?u:'';
@@ -73,7 +69,7 @@ const dt=s=>new Date(s).toLocaleDateString('pt-BR');
 async function load(){
  let r=await sb.from('products').select('*').order('id');P=r.data||[];
  r=await sb.from('orders').select('*').order('id',{ascending:false});O=r.data||[];
- if(me.role=='admin'){r=await sb.from('profiles').select('*').in('role',['rev','prod','owner']).order('name');U=r.data||[];r=await sb.from('rev_meta').select('*');M={};(r.data||[]).forEach(x=>M[x.rev_id]={tags:x.tags||[],note:x.note||''})}else if(me.role=='rev'){const z=await sb.from('rev_meta').select('tags').eq('rev_id',me.id).maybeSingle();labelEnabled=!!z.data?.tags?.includes(ORDER_LABEL_TAG)}await loadMsgs()}
+ if(me.role=='admin'){r=await sb.from('profiles').select('*').in('role',['rev','prod','owner']).order('name');U=r.data||[];r=await sb.from('rev_meta').select('*');M={};(r.data||[]).forEach(x=>M[x.rev_id]={tags:x.tags||[],note:x.note||''})}else if(me.role=='rev'){const z=await sb.from('rev_meta').select('tags').eq('rev_id',me.id).maybeSingle();labelEnabled=!!(z.data?.tags||[]).includes(ORDER_LABEL_TAG)}await loadMsgs()}
 async function boot(){
  if(SUPABASE_URL.startsWith('COLE'))return $('#app').innerHTML='<div class="wrap"><div class="card"><h2>Configure o Supabase</h2><p>Edite o index.html e cole a URL e a anon key no topo do script.</p></div></div>';
  const{data:{session}}=await sb.auth.getSession();
@@ -129,7 +125,7 @@ function pedit(id){const p=P.find(x=>x.id==id)||{name:'',cat:'Camas',emo:'📦',
   let img=p.img;if(pfile){const path=Date.now()+'.jpg',u=await sb.storage.from('produtos').upload(path,pfile,{contentType:'image/jpeg'});if(err(u.error))return;img=sb.storage.from('produtos').getPublicUrl(path).data.publicUrl}
   const o={name:$('#pn').value.trim(),cat:$('#pc').value.trim()||'Outros',emo:p.emo,colors:$('#pk').value,vars,img};
   const r=id?await sb.from('products').update(o).eq('id',id):await sb.from('products').insert(o);if(err(r.error))return;m.remove();refresh()}}
-const itL=i=>{const k=i.sku||skuOf((P.find(p=>p.id==i.id)||{vars:[]}).vars.find(v=>v.n==i.v),i.c),lab=i.etiqueta||i.label||'',kit=i.conjunto?' <span class="tag" style="background:#7c5cff22;color:#7c3aed">Conjunto</span>':'';return i.q+'x '+(k?'<b>'+E(k)+'</b>':E(i.name)+' '+E(i.v)+' ('+E(i.c)+')')+(lab?' <span class="tag" style="background:#ff6bb522;color:#c02675">🏷 '+E(lab)+'</span>':'')+kit};
+const itL=i=>{const k=i.sku||skuOf((P.find(p=>p.id==i.id)||{vars:[]}).vars.find(v=>v.n==i.v),i.c),lab=i.etiqueta||'',kit=i.conjunto?' <span class="tag" style="background:#7c5cff22;color:#7c3aed">Conjunto</span>':'';return i.q+'x '+(k?'<b>'+E(k)+'</b>':E(i.name)+' '+E(i.v)+' ('+E(i.c)+')')+(lab?' <span class="tag" style="background:#ff6bb522;color:#c02675">🏷 '+E(lab)+'</span>':'')+kit};
 const ST={novo:'🆕 Novo',producao:'🔧 Em produção',concluido:'📦 Pode vir buscar'};
 const canEst=()=>me&&(me.role=='admin'||me.role=='prod');
 const itE=(o,i,k)=>`<label style="display:flex;align-items:center;gap:8px;padding:4px 0;${canEst()?'cursor:pointer':''}"><input type="checkbox" ${i.est?'checked':''} ${canEst()?'':'disabled'} onchange="setEst(${o.id},${k},this.checked)" style="width:18px;height:18px;margin:0;padding:0;flex:none"><span>${itL(i)}</span>${i.est?'<span class="tag ok">✓ em estoque</span>':''}</label>`;
@@ -251,7 +247,7 @@ function sepRows(list,ord){
   list.forEach(o=>o.items.forEach(i=>{
     const p=P.find(x=>x.id==i.id),v=p?.vars?.find(x=>x.n==i.v);
     const sku=i.sku||skuOf(v,i.c)||'';
-    rows.push({pedido:o.id,cliente:o.who||'—',sku:sku||i.name||'—',produto:i.name||'—',opcao:i.v||'',cor:i.c||'',etiqueta:i.etiqueta||i.label||'',conjunto:!!i.conjunto,q:Number(i.q)||0,obs:o.note||''});
+    rows.push({pedido:o.id,cliente:o.who||'—',sku:sku||i.name||'—',produto:i.name||'—',opcao:i.v||'',cor:i.c||'',etiqueta:i.etiqueta||'',conjunto:!!i.conjunto,q:Number(i.q)||0,obs:o.note||''});
   }));
   if(ord==='sku'){
     const map={};
@@ -326,7 +322,7 @@ function xl(){
  l.slice().reverse().forEach(o=>o.items.forEach(i=>{
   const sku=i.sku||skuOf(P.find(p=>p.id==i.id)?.vars.find(v=>v.n==i.v),i.c)||i.name||'',sub=Math.round(i.p*i.q*100)/100;q+=i.q;t+=sub;
   const r=res[o.who]||(res[o.who]={'Vendedor':o.who,'Pedidos':new Set(),'Quantidade':0,'Total (R$)':0});r.Pedidos.add(o.id);r.Quantidade+=i.q;r['Total (R$)']+=sub;
-  rows.push({'Data':day(o),'Hora':tm(o.created_at),'Pedido':o.id,'Vendedor':o.who,'E-mail':o.email||'','SKU':sku,'Produto':i.name,'Opção':i.v,'Cor':i.c,'Etiqueta':i.etiqueta||i.label||'','Conjunto':i.conjunto?'Sim':'Não','Quantidade':i.q,'Valor revenda (un.)':i.p,'Subtotal':sub,'Estado':es[o.status]||'Novo','Horário de busca':({manha:'Manhã',tarde:'Tarde'}[o.pickup]||'Qualquer horário'),'Observação':o.note||''})}));
+  rows.push({'Data':day(o),'Hora':tm(o.created_at),'Pedido':o.id,'Vendedor':o.who,'E-mail':o.email||'','SKU':sku,'Produto':i.name,'Opção':i.v,'Cor':i.c,'Etiqueta':i.etiqueta||'','Conjunto':i.conjunto?'Sim':'Não','Quantidade':i.q,'Valor revenda (un.)':i.p,'Subtotal':sub,'Estado':es[o.status]||'Novo','Horário de busca':({manha:'Manhã',tarde:'Tarde'}[o.pickup]||'Qualquer horário'),'Observação':o.note||''})}));
  rows.push({});rows.push({'Vendedor':'TOTAL','Quantidade':q,'Subtotal':Math.round(t*100)/100});
  const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[11,7,8,22,26,18,24,18,12,11,18,12,16,18,30].map(w=>({wch:w}));
  Object.keys(ws).forEach(k=>{if(/^[KL]\d+$/.test(k)&&ws[k].t=='n')ws[k].z='"R$" #,##0.00'});
