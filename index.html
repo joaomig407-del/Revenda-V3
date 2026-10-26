@@ -98,13 +98,96 @@ async function signup(){const tel=$('#tel').value.replace(/\D/g,''),n=$('#n').va
  const{error}=await sb.auth.signUp({email:e,password:p,options:{data:{name:n,phone:tel}}});if(err(error))return;
  await sb.auth.signOut();alert('Cadastro enviado! Aguarde aprovação.');$('#app').innerHTML=loginV()}
 async function out(){document.querySelectorAll('.modal,.splash').forEach(e=>e.remove());if(chan){sb.removeChannel(chan);chan=null}await sb.auth.signOut();me=null;cart=[];chatRev=null;labelEnabled=false;go()}
-const hdr=t=>`<header><span class="g" style="border-radius:10px;padding:5px 8px">🐾</span><b>${t}</b><span class="mu" style="font-size:12px">${E(me.name)}</span>${me.role=='rev'?`<button class="btn s" onclick="chatR()">💬${unR()?` <span class="dot">${unR()}</span>`:''}</button>`:''}<button class="btn s" onclick="out()">Sair</button></header>`;
-/* ---------- ADMIN ---------- */
-function adminV(){const tot=O.reduce((a,o)=>a+Number(o.total),0),T=[['dash','📊 Painel'],['prod','📦 Produtos'],['rev','👥 Revendedores'],['ped','🧾 Pedidos'],['clientes','👥 Clientes finais'],['chat','💬 Chat'+(unA()?' 🔴'+unA():'')]];let b='';
+const hdr=t=>`<header><span class="g" style="border-radius:10px;padding:5px 8px">🐾</span><b>${t}</b><span class="mu" style="font-size:12px">${E(me.name)}</span>${me.role=='rev'?`<button class="btn s" onclick="chatR()">💬${unR()?` <span class="dot">${unR()}</span>`:''}</button>`:''}${me.role=='rev'?'<button class="btn s" onclick="accountV()">⚙️ Conta</button>':''}<button class="btn s" onclick="out()">Sair</button></header>`;
+function accountV(){
+ const m=document.createElement('div');m.className='modal';
+ m.innerHTML=`<div><h2>⚙️ Minha conta</h2><label>Nome/apelido</label><input id="acname" value="${E(me.name||'')}"><label>E-mail</label><input id="acemail" type="email" value="${E(me.email||'')}"><label>WhatsApp (com DDD)</label><input id="acphone" type="tel" value="${E(me.phone||'')}"><button class="btn p" style="width:100%" id="acsave">Salvar dados</button><button class="btn" style="width:100%;margin-top:8px" id="acclose">Fechar</button></div>`;
+ document.body.appendChild(m);
+ m.querySelector('#acclose').onclick=()=>m.remove();
+ m.querySelector('#acsave').onclick=async()=>{
+  const name=m.querySelector('#acname').value.trim(),email=m.querySelector('#acemail').value.trim().toLowerCase(),phone=m.querySelector('#acphone').value.replace(/\\D/g,'');
+  if(!name||!email)return alert('Informe nome e e-mail.');
+  if(phone&&phone.length<10)return alert('Informe o WhatsApp com DDD.');
+  if(email!==String(me.email||'').toLowerCase()){
+   const a=await sb.auth.updateUser({email});
+   if(a.error)return alert(a.error.message);
+  }
+  const r=await sb.from('profiles').update({name,email,phone:phone||null}).eq('id',me.id);
+  if(err(r.error))return;
+  me.name=name;me.email=email;me.phone=phone;
+  m.remove();go();
+  alert(email!==String(me.email||'').toLowerCase()?'Confirme a alteração do e-mail na mensagem enviada.':'Dados atualizados.');
+ };
+}
+function editProfile(id){
+ const u=U.find(x=>x.id==id);if(!u)return;
+ const m=document.createElement('div');m.className='modal';
+ m.innerHTML=`<div><h2>✏️ Dados da conta</h2><p class="mu">${E(u.name)} · ${E(u.email)}</p><label>Nome/apelido</label><input id="epname" value="${E(u.name||'')}"><label>E-mail de acesso</label><input id="epemail" type="email" value="${E(u.email||'')}"><label>WhatsApp</label><input id="epphone" type="tel" value="${E(u.phone||'')}"><button class="btn p" style="width:100%" id="epsave">Salvar alterações</button><button class="btn" style="width:100%;margin-top:8px" id="epclose">Fechar</button></div>`;
+ document.body.appendChild(m);
+ m.querySelector('#epclose').onclick=()=>m.remove();
+ m.querySelector('#epsave').onclick=async()=>{
+  const name=m.querySelector('#epname').value.trim(),email=m.querySelector('#epemail').value.trim().toLowerCase(),phone=m.querySelector('#epphone').value.replace(/\\D/g,'');
+  if(!name||!email)return alert('Informe nome e e-mail.');
+  if(phone&&phone.length<10)return alert('Informe o WhatsApp com DDD.');
+  if(email!==String(u.email||'').toLowerCase()){
+   const a=await sb.rpc('admin_update_user_email',{uid:id,novo_email:email});
+   if(err(a.error))return;
+  }
+  const r=await sb.from('profiles').update({name,email,phone:phone||null}).eq('id',id);
+  if(err(r.error))return;
+  m.remove();await refresh();alert('Dados atualizados.');
+ };
+}
+let cfgFrom='',cfgTo='',cfgLimit='todos';
+function configV(){
+ if(!cfgFrom||!cfgTo){const now=new Date();cfgFrom=iso(new Date(now.getFullYear(),now.getMonth(),1));cfgTo=iso(now)}
+ return `<div class="grid">
+ <div class="card"><h2 style="margin-top:0">📦 Backup de vendas</h2><p class="mu">Escolha o período e, se desejar, limite quantas vendas entram no arquivo.</p><label>De</label><input type="date" value="${cfgFrom}" onchange="setCfgDate('from',this.value)"><label>Até</label><input type="date" value="${cfgTo}" onchange="setCfgDate('to',this.value)"><label>Quantidade de vendas</label><select id="cfgLimit" onchange="cfgLimit=this.value"><option value="todos" ${cfgLimit=='todos'?'selected':''}>Todas as vendas do período</option><option value="50" ${cfgLimit=='50'?'selected':''}>Últimas 50</option><option value="100" ${cfgLimit=='100'?'selected':''}>Últimas 100</option><option value="250" ${cfgLimit=='250'?'selected':''}>Últimas 250</option><option value="500" ${cfgLimit=='500'?'selected':''}>Últimas 500</option></select><button class="btn p" style="width:100%" onclick="downloadBackup()">⬇️ Baixar backup do período</button></div>
+ <div class="card"><h2 style="margin-top:0">📥 Adicionar backup ao sistema</h2><p class="mu">Selecione um arquivo JSON de backup para importar as vendas. Os pedidos importados receberão novos números.</p><input id="backupFile" type="file" accept=".json,application/json"><button class="btn p" style="width:100%" onclick="importBackup()">Importar vendas do backup</button></div>
+ <div class="card"><h2 style="margin-top:0">🗑️ Remover vendas do período</h2><p class="mu">A exclusão é permanente. Confira as datas antes de continuar.</p><p><b>Período selecionado:</b> ${cfgFrom} até ${cfgTo}</p><button class="btn d" style="width:100%" onclick="deletePeriodSales()">Apagar vendas deste período</button></div>
+ <div class="card"><h2 style="margin-top:0">👥 Contas</h2><p class="mu">Edite nome/apelido, e-mail de acesso e WhatsApp na lista de revendedores.</p><button class="btn" onclick="atab='rev';go()">Abrir lista de contas</button></div>
+ </div>`;
+}
+function setCfgDate(which,value){if(which==='from')cfgFrom=value;else cfgTo=value;go()}
+function downloadBackup(){
+ if(!cfgFrom||!cfgTo||cfgFrom>cfgTo)return alert('Confira o período selecionado.');
+ let rows=O.filter(o=>day(o)>=cfgFrom&&day(o)<=cfgTo).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+ if(cfgLimit!=='todos')rows=rows.slice(-Math.max(1,Number(cfgLimit)||1));
+ if(!rows.length)return alert('Não há vendas nesse período.');
+ const pack={versao:1,periodo_ini:cfgFrom,periodo_fim:cfgTo,qtd:rows.length,criado_em:new Date().toISOString(),dados:rows};
+ const blob=new Blob([JSON.stringify(pack)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=`backup_vendas_${cfgFrom}_a_${cfgTo}.json`;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+async function importBackup(){
+ const file=document.querySelector('#backupFile')?.files?.[0];if(!file)return alert('Selecione um arquivo JSON de backup.');
+ let pack;try{pack=JSON.parse(await file.text())}catch(e){return alert('O arquivo não contém um JSON válido.')}
+ if(!pack||!Array.isArray(pack.dados)||!pack.dados.length)return alert('O backup não contém vendas para importar.');
+ const valid=pack.dados.every(o=>o&&o.who&&o.created_at&&Array.isArray(o.items)&&Number.isFinite(Number(o.total)));
+ if(!valid)return alert('O backup tem vendas com dados incompletos ou inválidos.');
+ if(!confirm(`Importar ${pack.dados.length} venda(s) para o sistema? Os pedidos receberão novos números.`))return;
+ const rows=pack.dados.map(o=>({user_id:o.user_id||null,email:o.email||null,phone:o.phone||null,pickup:o.pickup||'qualquer',note:o.note||null,who:o.who,items:o.items,total:Number(o.total),status:o.status||'novo',created_at:o.created_at}));
+ for(let i=0;i<rows.length;i+=100){
+  const r=await sb.from('orders').insert(rows.slice(i,i+100));
+  if(err(r.error))return alert('A importação parou. Verifique o erro mostrado; parte das vendas pode já ter sido adicionada.');
+ }
+ await refresh();alert(`${rows.length} venda(s) importada(s).`);
+}
+async function deletePeriodSales(){
+ if(!cfgFrom||!cfgTo||cfgFrom>cfgTo)return alert('Confira o período selecionado.');
+ const count=O.filter(o=>day(o)>=cfgFrom&&day(o)<=cfgTo).length;
+ if(!count)return alert('Não há vendas nesse período.');
+ if(!confirm(`Apagar permanentemente ${count} venda(s), de ${cfgFrom} até ${cfgTo}?`))return;
+ const start=new Date(cfgFrom+'T00:00:00'),end=new Date(cfgTo+'T00:00:00');end.setDate(end.getDate()+1);
+ const r=await sb.from('orders').delete().gte('created_at',start.toISOString()).lt('created_at',end.toISOString());
+ if(err(r.error))return;
+ await refresh();alert(`${count} venda(s) apagada(s).`);
+}
+async function refresh(){await load();go()}
+function adminV(){const tot=O.reduce((a,o)=>a+Number(o.total),0),T=[['dash','📊 Painel'],['prod','📦 Produtos'],['rev','👥 Revendedores'],['ped','🧾 Pedidos'],['clientes','👥 Clientes finais'],['chat','💬 Chat'+(unA()?' 🔴'+unA():'')],['config','⚙️ Configurações']];let b='';
  if(atab=='dash')b=`<div class="stats"><div class="stat g"><b>${P.length}</b>Produtos</div><div class="stat" style="background:#0ea5e9"><b>${U.filter(u=>u.role=='rev'&&u.status=='active').length}</b>Revendedores</div><div class="stat" style="background:#f59e0b"><b>${U.filter(u=>u.status=='pending').length}</b>Pendentes</div></div>`+dashV();
  if(atab=='prod')b=`<button class="btn p" onclick="pedit()">+ Novo produto</button> <button class="btn" onclick="autoSku()">🔖 Gerar SKUs vazios</button><div class="grid" style="margin-top:12px">${P.map(p=>`<div class="card"><div class="img" style="${p.img?`background-image:url(${E(p.img)})`:''}">${p.img?'':E(p.emo)}</div><b>${E(p.name)}</b> <span class="tag">${E(p.cat)}</span><div class="mu" style="font-size:13px;margin:6px 0">${p.vars.map(v=>E(v.n)+' '+R(v.p)).join(' · ')}</div><button class="btn s" onclick="pedit(${p.id})">Editar</button> <button class="btn s d" onclick="pdel(${p.id})">Excluir</button></div>`).join('')}</div>`;
- if(atab=='rev')b=`${labelPanel()}<div class="card"><h2>Revendedores</h2><button class="btn s" onclick="upass('${me.id}')">🔑 Alterar minha senha</button>${U.map(u=>`<div class="row"><div><b>${E(u.name)}</b>${u.role=='prod'?' <span class="tag">🏭 Produção</span>':''}${u.role=='owner'?' <span class="tag">👑 Dono</span>':''}<br><span class="mu">${E(u.email)}</span></div><div><span class="tag ${u.status=='active'?'ok':'w'}">${u.status=='active'?'Ativo':u.status=='pending'?'Pendente':'Bloqueado'}</span> ${u.status!='active'?`<button class="btn s p" onclick="ust('${u.id}','active')">Aprovar</button>`:`<button class="btn s" onclick="ust('${u.id}','blocked')">Bloquear</button>`} <select onchange="urole('${u.id}',this.value)" style="width:auto;margin:0;padding:6px"><option value="rev" ${u.role=='rev'?'selected':''}>Revendedor</option><option value="prod" ${u.role=='prod'?'selected':''}>Produção</option><option value="owner" ${u.role=='owner'?'selected':''}>👑 Dono</option></select> <label class="tag" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" ${labelsOnFor(u.id)?'checked':''} onchange="toggleLabels('${u.id}',this.checked)" style="width:17px;height:17px;margin:0">🏷 Etiquetas no pedido</label> <button class="btn s" onclick="upass('${u.id}')">🔑 Senha</button> <button class="btn s d" onclick="udel('${u.id}')">Remover</button></div></div>`).join('')||'<p class="mu">Nenhum revendedor ainda.</p>'}</div>`;
- if(atab=='ped')b=ordersV(true);if(atab=='clientes')b=customerReportV(true);if(atab=='chat')b=chatAdminV();
+ if(atab=='rev')b=`${labelPanel()}<div class="card"><h2>Revendedores</h2><button class="btn s" onclick="upass('${me.id}')">🔑 Alterar minha senha</button>${U.map(u=>`<div class="row"><div><b>${E(u.name)}</b>${u.role=='prod'?' <span class="tag">🏭 Produção</span>':''}${u.role=='owner'?' <span class="tag">👑 Dono</span>':''}<br><span class="mu">${E(u.email)}</span></div><div><span class="tag ${u.status=='active'?'ok':'w'}">${u.status=='active'?'Ativo':u.status=='pending'?'Pendente':'Bloqueado'}</span> ${u.status!='active'?`<button class="btn s p" onclick="ust('${u.id}','active')">Aprovar</button>`:`<button class="btn s" onclick="ust('${u.id}','blocked')">Bloquear</button>`} <select onchange="urole('${u.id}',this.value)" style="width:auto;margin:0;padding:6px"><option value="rev" ${u.role=='rev'?'selected':''}>Revendedor</option><option value="prod" ${u.role=='prod'?'selected':''}>Produção</option><option value="owner" ${u.role=='owner'?'selected':''}>👑 Dono</option></select> <label class="tag" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" ${labelsOnFor(u.id)?'checked':''} onchange="toggleLabels('${u.id}',this.checked)" style="width:17px;height:17px;margin:0">🏷 Etiquetas no pedido</label> <button class="btn s" onclick="editProfile('${u.id}')">✏️ Dados</button> <button class="btn s" onclick="upass('${u.id}')">🔑 Senha</button> <button class="btn s d" onclick="udel('${u.id}')">Remover</button></div></div>`).join('')||'<p class="mu">Nenhum revendedor ainda.</p>'}</div>`;
+ if(atab=='ped')b=ordersV(true);if(atab=='clientes')b=customerReportV(true);if(atab=='chat')b=chatAdminV();if(atab=='config')b=configV();
  return hdr('Admin')+`<div class="wrap"><div class="tabs">${T.map(t=>`<button class="tab ${atab==t[0]?'on':''}" onclick="atab='${t[0]}';go()">${t[1]}</button>`).join('')}</div>${b}</div>`}
 async function refresh(){await load();go()}
 async function ust(id,s){if(err((await sb.from('profiles').update({status:s}).eq('id',id)).error))return;refresh()}
