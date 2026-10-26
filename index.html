@@ -52,6 +52,7 @@ input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--bd);bo
 .bars{display:flex;align-items:flex-end;gap:3px;height:160px;overflow-x:auto;padding-top:8px}.bars>div{flex:1;min-width:16px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;font-size:10px;color:var(--mu)}.bars i{display:block;width:100%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--ac),var(--ac2));min-height:2px}.hb{height:8px;border-radius:9px;background:var(--bd);overflow:hidden;margin-top:4px}.hb i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--ac),var(--ac2))}.stat small{opacity:.85}
 .sep-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .sep-btn{display:flex;align-items:center;justify-content:center;gap:8px}
+.report-wrap{width:100%;overflow-x:auto;margin-top:10px}.report-wrap table{width:100%;min-width:650px;border-collapse:collapse;font-size:13px}.report-wrap th,.report-wrap td{padding:9px;text-align:left;border-bottom:1px solid var(--bd);vertical-align:top}.report-wrap th{color:var(--mu);font-size:12px}
 @media(max-width:600px){.sep-actions{grid-template-columns:1fr}.wrap{padding:14px 12px 32px}header{padding:10px 12px}header b{font-size:15px}.card{padding:14px;border-radius:18px}.grid{grid-template-columns:1fr;gap:12px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.stat{padding:13px;border-radius:17px}.stat b{font-size:22px}.btn{min-height:42px}.btn.s{min-height:36px}.row{gap:8px}.ord{padding:14px;border-radius:17px}.tabs{flex-wrap:nowrap;overflow-x:auto}.tab{padding:8px 12px;font-size:13px}.img{height:150px}.modal>div{padding:16px;border-radius:20px 20px 0 0}}
 @media(max-width:380px){.stats{grid-template-columns:1fr 1fr}.stat{font-size:12px}.stat b{font-size:19px}header .mu{display:none}}
 .logo-preview{width:100%;height:90px;border:1px dashed var(--bd);border-radius:12px;display:grid;place-items:center;background:var(--bg);overflow:hidden;margin:6px 0 10px}
@@ -97,13 +98,13 @@ async function signup(){const tel=$('#tel').value.replace(/\D/g,''),n=$('#n').va
  const{error}=await sb.auth.signUp({email:e,password:p,options:{data:{name:n,phone:tel}}});if(err(error))return;
  await sb.auth.signOut();alert('Cadastro enviado! Aguarde aprovação.');$('#app').innerHTML=loginV()}
 async function out(){document.querySelectorAll('.modal,.splash').forEach(e=>e.remove());if(chan){sb.removeChannel(chan);chan=null}await sb.auth.signOut();me=null;cart=[];chatRev=null;labelEnabled=false;go()}
-const hdr=t=>`<header><span class="g" style="border-radius:10px;padding:5px 8px">🐾</span><b>${t}</b><span class="mu" style="font-size:12px">${E(me.name)}</span>${me.role=='rev'?`<button class="btn s" onclick="chatR()">💬${unR()?` <span class="dot">${unR()}</span>`:''}</button>`:''}<button class="btn s" onclick="minhaConta()">⚙️</button><button class="btn s" onclick="out()">Sair</button></header>`;
+const hdr=t=>`<header><span class="g" style="border-radius:10px;padding:5px 8px">🐾</span><b>${t}</b><span class="mu" style="font-size:12px">${E(me.name)}</span>${me.role=='rev'?`<button class="btn s" onclick="chatR()">💬${unR()?` <span class="dot">${unR()}</span>`:''}</button>`:''}<button class="btn s" onclick="out()">Sair</button></header>`;
 /* ---------- ADMIN ---------- */
-function adminV(){const tot=O.reduce((a,o)=>a+Number(o.total),0),T=[['dash','📊 Painel'],['prod','📦 Produtos'],['rev','👥 Revendedores'],['ped','🧾 Pedidos'],['chat','💬 Chat'+(unA()?' 🔴'+unA():'')],['cfg','⚙️ Configurações']];let b='';
+function adminV(){const tot=O.reduce((a,o)=>a+Number(o.total),0),T=[['dash','📊 Painel'],['prod','📦 Produtos'],['rev','👥 Revendedores'],['ped','🧾 Pedidos'],['clientes','👥 Clientes finais'],['chat','💬 Chat'+(unA()?' 🔴'+unA():'')]];let b='';
  if(atab=='dash')b=`<div class="stats"><div class="stat g"><b>${P.length}</b>Produtos</div><div class="stat" style="background:#0ea5e9"><b>${U.filter(u=>u.role=='rev'&&u.status=='active').length}</b>Revendedores</div><div class="stat" style="background:#f59e0b"><b>${U.filter(u=>u.status=='pending').length}</b>Pendentes</div></div>`+dashV();
  if(atab=='prod')b=`<button class="btn p" onclick="pedit()">+ Novo produto</button> <button class="btn" onclick="autoSku()">🔖 Gerar SKUs vazios</button><div class="grid" style="margin-top:12px">${P.map(p=>`<div class="card"><div class="img" style="${p.img?`background-image:url(${E(p.img)})`:''}">${p.img?'':E(p.emo)}</div><b>${E(p.name)}</b> <span class="tag">${E(p.cat)}</span><div class="mu" style="font-size:13px;margin:6px 0">${p.vars.map(v=>E(v.n)+' '+R(v.p)).join(' · ')}</div><button class="btn s" onclick="pedit(${p.id})">Editar</button> <button class="btn s d" onclick="pdel(${p.id})">Excluir</button></div>`).join('')}</div>`;
- if(atab=='rev')b=`${labelPanel()}<div class="card"><h2>Revendedores</h2><button class="btn s" onclick="upass('${me.id}')">🔑 Alterar minha senha</button>${U.map(u=>`<div class="row"><div><b>${E(u.name)}</b>${u.apelido?` <span class="mu">(${E(u.apelido)})</span>`:''}${u.role=='prod'?' <span class="tag">🏭 Produção</span>':''}${u.role=='owner'?' <span class="tag">👑 Dono</span>':''}<br><span class="mu">${E(u.email)}</span></div><div><span class="tag ${u.status=='active'?'ok':'w'}">${u.status=='active'?'Ativo':u.status=='pending'?'Pendente':'Bloqueado'}</span> ${u.status!='active'?`<button class="btn s p" onclick="ust('${u.id}','active')">Aprovar</button>`:`<button class="btn s" onclick="ust('${u.id}','blocked')">Bloquear</button>`} <select onchange="urole('${u.id}',this.value)" style="width:auto;margin:0;padding:6px"><option value="rev" ${u.role=='rev'?'selected':''}>Revendedor</option><option value="prod" ${u.role=='prod'?'selected':''}>Produção</option><option value="owner" ${u.role=='owner'?'selected':''}>👑 Dono</option></select> <label class="tag" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" ${labelsOnFor(u.id)?'checked':''} onchange="toggleLabels('${u.id}',this.checked)" style="width:17px;height:17px;margin:0">🏷 Etiquetas no pedido</label> <button class="btn s" onclick="upass('${u.id}')">🔑 Senha</button> <button class="btn s d" onclick="udel('${u.id}')">Remover</button></div></div>`).join('')||'<p class="mu">Nenhum revendedor ainda.</p>'}</div>`;
- if(atab=='ped')b=ordersV(true);if(atab=='chat')b=chatAdminV();if(atab=='cfg')b=cfgV();
+ if(atab=='rev')b=`${labelPanel()}<div class="card"><h2>Revendedores</h2><button class="btn s" onclick="upass('${me.id}')">🔑 Alterar minha senha</button>${U.map(u=>`<div class="row"><div><b>${E(u.name)}</b>${u.role=='prod'?' <span class="tag">🏭 Produção</span>':''}${u.role=='owner'?' <span class="tag">👑 Dono</span>':''}<br><span class="mu">${E(u.email)}</span></div><div><span class="tag ${u.status=='active'?'ok':'w'}">${u.status=='active'?'Ativo':u.status=='pending'?'Pendente':'Bloqueado'}</span> ${u.status!='active'?`<button class="btn s p" onclick="ust('${u.id}','active')">Aprovar</button>`:`<button class="btn s" onclick="ust('${u.id}','blocked')">Bloquear</button>`} <select onchange="urole('${u.id}',this.value)" style="width:auto;margin:0;padding:6px"><option value="rev" ${u.role=='rev'?'selected':''}>Revendedor</option><option value="prod" ${u.role=='prod'?'selected':''}>Produção</option><option value="owner" ${u.role=='owner'?'selected':''}>👑 Dono</option></select> <label class="tag" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" ${labelsOnFor(u.id)?'checked':''} onchange="toggleLabels('${u.id}',this.checked)" style="width:17px;height:17px;margin:0">🏷 Etiquetas no pedido</label> <button class="btn s" onclick="upass('${u.id}')">🔑 Senha</button> <button class="btn s d" onclick="udel('${u.id}')">Remover</button></div></div>`).join('')||'<p class="mu">Nenhum revendedor ainda.</p>'}</div>`;
+ if(atab=='ped')b=ordersV(true);if(atab=='clientes')b=customerReportV(true);if(atab=='chat')b=chatAdminV();
  return hdr('Admin')+`<div class="wrap"><div class="tabs">${T.map(t=>`<button class="tab ${atab==t[0]?'on':''}" onclick="atab='${t[0]}';go()">${t[1]}</button>`).join('')}</div>${b}</div>`}
 async function refresh(){await load();go()}
 async function ust(id,s){if(err((await sb.from('profiles').update({status:s}).eq('id',id)).error))return;refresh()}
@@ -133,7 +134,9 @@ const itE=(o,i,k)=>`<div style="padding:4px 0"><label style="display:flex;align-
 function copiarEt(id,k){const t=(O.find(x=>x.id==id)?.items[k]?.texto)||'';if(!t)return;const ok=()=>alert('Texto da etiqueta copiado! ✅');const fb=()=>{const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove();ok()};if(navigator.clipboard)navigator.clipboard.writeText(t).then(ok,fb);else fb()}
 async function setEst(id,k,v){const r=await sb.rpc('set_item_estoque',{p_order:id,p_idx:k,p_val:v});if(err(r.error)){refresh();return}const o=O.find(x=>x.id==id);if(o&&o.items[k])o.items[k].est=v;const y=window.scrollY;go();window.scrollTo(0,y)}
 const stTag=s=>`<span class="tag ${s=='concluido'?'ok':s=='producao'?'w':'b'}">${ST[s]||ST.novo}</span>`;
-function noteBox(o){return o.note?`<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:#f59e0b22;font-size:13px">📝 <b>Observação:</b> ${E(o.note)}</div>`:''}
+function finalCustomer(note){const m=String(note||'').match(/\[\[CF:([^\]]*)\]\]/);if(!m)return null;try{return JSON.parse(decodeURIComponent(m[1]))}catch(e){return null}}
+function cleanNote(note){return String(note||'').replace(/\n?\[\[CF:[^\]]*\]\]/g,'').trim()}
+function noteBox(o){const n=cleanNote(o.note);return n?`<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:#f59e0b22;font-size:13px">📝 <b>Observação:</b> ${E(n)}</div>`:''}
 let MSG=[],M={},chatRev=null,cq='',cf='',TG=[],chan=null,lastSig='';
 const QR=['Olá! Como posso ajudar? 😊','Seu pedido entrou em produção 🔧','Seu pedido está pronto: pode vir buscar! 📦','Vou verificar e já te retorno.','Nossa chave Pix é: '],TS=['VIP','Novo','Devendo','Atacado','Atenção','Pagou'];
 const tc=t=>{let h=0;for(const c of t)h=(h*31+c.charCodeAt(0))%360;return `background:hsl(${h} 80% 50%/.2);color:hsl(${h} 75% 55%)`};
@@ -154,7 +157,10 @@ function qrx(i){const t=$('#ci');t.value=QR[i];t.focus()}
 async function chatR(){await loadMsgs();lastSig='';const m=document.createElement('div');m.className='modal';
  m.innerHTML=`<div><div class="row" style="border:0;padding:0"><h2 style="margin:0">💬 Chat com a revenda</h2><button class="btn s" id="cx">Fechar</button></div><div id="msgs" style="margin:10px 0"></div>${chatInput()}</div>`;
  document.body.appendChild(m);m.querySelector('#cx').onclick=()=>{m.remove();go()};drawMsgs(true);await markRead(me.id);drawMsgs(true)}
-/* admin */
+async function requestOrder(id,kind){const o=O.find(x=>x.id==id);if(!o)return;let body='';
+ if(kind=='cancelar'){if(!confirm('Enviar solicitação de cancelamento do pedido #'+id+'? O pedido só será cancelado depois da análise do administrador.'))return;body=`Solicitação de cancelamento do pedido #${id}. Por favor, analise e me confirme.`}
+ else{const detalhe=prompt('Descreva a alteração desejada no pedido #'+id+':');if(!detalhe||!detalhe.trim())return;body=`Solicitação de alteração do pedido #${id}: ${detalhe.trim()}`}
+ const r=await sb.from('messages').insert({rev_id:me.id,from_admin:false,body});if(err(r.error))return;await loadMsgs();alert('Solicitação enviada pelo chat. O administrador poderá responder por lá.')}
 function openConv(id){chatRev=id;lastSig='';go();drawMsgs(true);markRead(id).then(()=>drawMsgs(true))}
 function labelsOnFor(id){const u=U.find(x=>x.id==id);if(u&&u.role=='prod')return true;return !!(M[id]?.tags||[]).includes(ORDER_LABEL_TAG)}
 function labelPanel(){const rs=U.filter(u=>u.role=='rev'||u.role=='prod');return `<div class="card" style="margin-bottom:14px"><b style="font-size:16px">🏷 Etiquetas no pedido</b><p class="mu" style="margin:6px 0 10px">Marque quem vai informar a etiqueta e o conjunto ao finalizar o pedido. Quem embala vê e imprime a etiqueta.</p>${rs.map(u=>`<label class="row" style="cursor:pointer;margin:0"><span><b>${E(u.name)}</b> <span class="mu" style="font-size:12px">${E(u.email)}</span></span><input type="checkbox" ${labelsOnFor(u.id)?'checked':''} onchange="toggleLabels('${u.id}',this.checked)" style="width:20px;height:20px;margin:0"></label>`).join('')||'<p class="mu">Nenhum revendedor ainda.</p>'}</div>`}
@@ -201,6 +207,12 @@ const sold=l=>l.reduce((a,o)=>a+Number(o.total),0),qty=l=>l.reduce((a,o)=>a+o.it
 function rank(l){const m={};l.forEach(o=>{const k=o.user_id||o.email||o.who,r=m[k]||(m[k]={n:o.who,t:0,c:0});r.t+=Number(o.total);r.c++});return Object.values(m).sort((a,b)=>b.t-a.t)}
 function topBy(l,f){const m={};l.forEach(o=>o.items.forEach(i=>{const k=f(i),r=m[k]||(m[k]={n:k,q:0,t:0});r.q+=i.q;r.t+=i.p*i.q}));return Object.values(m).sort((a,b)=>b.t-a.t)}
 const hbars=(rows,lab,val,fmt)=>{const mx=Math.max(...rows.map(val),1);return rows.map((r,i)=>`<div style="margin:8px 0"><div class="row" style="border:0;padding:0"><span>${['🥇','🥈','🥉'][i]||(i+1)+'.'} ${E(lab(r))}</span><b>${fmt(r)}</b></div><div class="hb"><i style="width:${val(r)/mx*100}%"></i></div></div>`).join('')||'<p class="mu">Sem vendas no período.</p>'};
+function forecastV(){const now=Date.now(),d30=30*864e5,d60=60*864e5,m={};
+ O.forEach(o=>{const t=new Date(o.created_at).getTime();if(t<now-d60||t>now)return;(o.items||[]).forEach(i=>{const k=i.sku||i.name||'Produto',x=m[k]||(m[k]={key:k,name:i.name||k,sku:i.sku||'',recent:0,prior:0});const q=Number(i.q)||0;if(t>=now-d30)x.recent+=q;else x.prior+=q})});
+ const rows=Object.values(m).map(x=>({...x,proj:Math.max(0,Math.round(x.recent+(x.recent-x.prior)))})).sort((a,b)=>b.proj-a.proj).slice(0,10);
+ return `<div class="card" style="margin-top:12px"><h2 style="margin-top:0">🔮 Previsão de demanda</h2><p class="mu">Estimativa para os próximos 30 dias, calculada com as vendas dos últimos 60 dias. A projeção acompanha a variação entre os dois períodos, então use como referência para planejar a reposição.</p><div class="report-wrap"><table><thead><tr><th>Produto / SKU</th><th>Últimos 30 dias</th><th>30 dias anteriores</th><th>Estimativa próximos 30 dias</th></tr></thead><tbody>${rows.map(x=>`<tr><td><b>${E(x.name)}</b>${x.sku?`<br><span class="mu">SKU: ${E(x.sku)}</span>`:''}</td><td>${x.recent} un.</td><td>${x.prior} un.</td><td><b>${x.proj} un.</b></td></tr>`).join('')||'<tr><td colspan="4">Ainda não há vendas suficientes no período para estimar a demanda.</td></tr>'}</tbody></table></div></div>`}
+function customerRows(list){const rows=[];list.forEach(o=>{const c=finalCustomer(o.note);if(!c)return;rows.push({name:c.name||'—',phone:c.phone||'—',seller:o.who||'—',order:o.id,date:o.created_at,value:Number(c.value)||0})});return rows.sort((a,b)=>new Date(b.date)-new Date(a.date))}
+function customerReportV(admin){const list=inR('ped'),rows=customerRows(list);return `<div class="card"><h2 style="margin-top:0">👥 Relatório de clientes finais</h2><p class="mu">Registros informados ao enviar pedidos. O revendedor vê apenas os próprios pedidos; o administrador vê todos os pedidos disponíveis.</p>${fbar('ped')}<div class="row"><b>${rows.length} registro(s)</b><span class="mu">${admin?'Relatório geral':'Seu relatório'}</span></div><div class="report-wrap"><table><thead><tr><th>Cliente final</th><th>WhatsApp</th><th>Revendedor</th><th>Pedido</th><th>Data</th><th>Valor de venda</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${E(x.name)}</td><td>${E(x.phone)}</td><td>${E(x.seller)}</td><td>#${E(x.order)}</td><td>${dt(x.date)}</td><td>${x.value?R(x.value):'—'}</td></tr>`).join('')||'<tr><td colspan="6">Nenhum cliente final registrado neste período.</td></tr>'}</tbody></table></div></div>`}
 function dayChart(l,r){const ds=l.map(day).sort();if(!ds.length)return '<p class="mu">Sem vendas no período.</p>';const a=r[0]||ds[0],b=r[1]||iso(new Date()),n=Math.round((pd(b)-pd(a))/864e5)+1,mon=n>62,m={};
  if(mon)l.forEach(o=>{const k=day(o).slice(0,7);m[k]=(m[k]||0)+Number(o.total)});else{for(let i=0;i<n;i++)m[iso(addD(pd(a),i))]=0;l.forEach(o=>{const k=day(o);if(k in m)m[k]+=Number(o.total)})}
  const ks=Object.keys(m).sort(),mx=Math.max(...ks.map(k=>m[k]),1);return `<div class="bars">${ks.map(k=>`<div title="${k}: ${R(m[k])}"><i style="height:${m[k]/mx*82}%"></i>${mon?k.slice(5)+'/'+k.slice(2,4):k.slice(8)}</div>`).join('')}</div>`}
@@ -212,63 +224,14 @@ function dashV(){const k='dash',r=rng(k),l=inR(k),pr=prevOf(k),pl=pr?inR(k,O,pr)
 <div class="stats"><div class="stat g"><b>${R(t)}</b>Faturamento<br>${dlt(t,sold(pl))}</div><div class="stat" style="background:#0ea5e9"><b>${nt}</b>Pedidos<br>${dlt(nt,pl.length)}</div><div class="stat" style="background:#f59e0b"><b>${qty(l)}</b>Peças vendidas</div><div class="stat" style="background:#16a34a"><b>${R(nt?t/nt:0)}</b>Ticket médio</div></div>
 <div class="card" style="margin-bottom:12px"><b>📈 Faturamento por dia</b>${dayChart(l,r)}</div>
 <div class="card" style="margin-bottom:12px"><b>🏆 Quem mais vendeu no período</b>${hbars(rank(l),x=>x.n+' ('+x.c+' ped.)',x=>x.t,x=>R(x.t))}</div>
-<div class="grid"><div class="card"><b>🔥 Produtos mais vendidos</b>${hbars(topBy(l,i=>i.name).slice(0,8),x=>x.n+' · '+x.q+' un.',x=>x.t,x=>R(x.t))}</div><div class="card"><b>🗂 Por categoria</b>${hbars(topBy(l,i=>(P.find(p=>p.id==i.id)||{}).cat||'Outros'),x=>x.n+' · '+x.q+' un.',x=>x.t,x=>R(x.t))}</div><div class="card"><b>📦 Status dos pedidos</b>${hbars(['novo','producao','concluido'].map(s=>({n:ST[s],t:l.filter(o=>o.status==s).length})),x=>x.n,x=>x.t,x=>x.t)}</div></div>`}
+<div class="grid"><div class="card"><b>🔥 Produtos mais vendidos</b>${hbars(topBy(l,i=>i.name).slice(0,8),x=>x.n+' · '+x.q+' un.',x=>x.t,x=>R(x.t))}</div><div class="card"><b>🗂 Por categoria</b>${hbars(topBy(l,i=>(P.find(p=>p.id==i.id)||{}).cat||'Outros'),x=>x.n+' · '+x.q+' un.',x=>x.t,x=>R(x.t))}</div><div class="card"><b>📦 Status dos pedidos</b>${hbars(['novo','producao','concluido'].map(s=>({n:ST[s],t:l.filter(o=>o.status==s).length})),x=>x.n,x=>x.t,x=>x.t)}</div></div>${forecastV()}`}
 function ownerV(){return hdr('Dono 👑')+`<div class="wrap"><div class="tabs"><button class="tab ${otab=='dash'?'on':''}" onclick="otab='dash';go()">📊 Painel</button><button class="tab ${otab=='ped'?'on':''}" onclick="otab='ped';go()">🧾 Pedidos</button></div>${otab=='dash'?dashV():ordersV(false,true)}</div>`}
 function upass(id){const u=id==me.id?me:U.find(x=>x.id==id),m=document.createElement('div');m.className='modal';
  m.innerHTML=`<div><h2>🔑 Nova senha</h2><p class="mu">${id==me.id?'Sua conta':E(u.name)+' · '+E(u.email)}</p><label>Nova senha (mín. 6 caracteres)</label><input id="np" type="text" autocomplete="off"><button class="btn s" id="ng">🎲 Gerar senha</button><button class="btn p" style="width:100%;margin-top:12px" id="ns">Salvar senha</button><button class="btn" style="width:100%;margin-top:8px" id="nc">Cancelar</button></div>`;document.body.appendChild(m);
  m.querySelector('#nc').onclick=()=>m.remove();m.querySelector('#ng').onclick=()=>{m.querySelector('#np').value=Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>'abcdefghjkmnpqrstuvwxyz23456789'[b%31]).join('')};
  m.querySelector('#ns').onclick=async()=>{const p=m.querySelector('#np').value;if(p.length<6)return alert('Mínimo 6 caracteres');const r=await sb.rpc('admin_set_password',{uid:id,nova_senha:p});if(err(r.error))return;m.remove();alert('Senha alterada! ✅ Nova senha: '+p)}}
 
-const pmes=()=>{const t=new Date(),y=t.getFullYear(),m=t.getMonth();return[iso(new Date(y,m-1,1)),iso(new Date(y,m,0))]};
-let BK=null;
-const emailOk=s=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
-const pIni=s=>s+'T00:00:00-03:00',pFim=s=>s+'T23:59:59.999-03:00';
-const pEx=(a,b)=>!a||!b?'Escolha as datas De e Até':a>b?'A data De é maior que a data Até':'';
-async function loadBk(){const r=await sb.from('backups').select('id,criado_em,periodo_ini,periodo_fim,qtd').order('id',{ascending:false});if(err(r.error)){BK=[];return go()}BK=r.data||[];go()}
-function cfgV(){
- if(BK===null){BK=[];setTimeout(loadBk,0)}
- const[pi,pf]=pmes(),us=U.filter(u=>u.role!='admin');
- return `<div class="card" style="margin-bottom:14px"><b style="font-size:16px">👤 Usuários</b><p class="mu" style="margin:6px 0 10px">Troque o e-mail de login e dê um apelido a cada conta.</p>${us.map(u=>`<div class="row"><div><b>${E(u.name)}</b>${u.apelido?` <span class="mu">(${E(u.apelido)})</span>`:''}<br><span class="mu" style="font-size:13px">${E(u.email)}</span></div><button class="btn s" onclick="editUser('${u.id}')">✏️ Editar e-mail / apelido</button></div>`).join('')||'<p class="mu">Nenhum usuário ainda.</p>'}</div>
-<div class="card" style="margin-bottom:14px"><b style="font-size:16px">💾 Backup de vendas</b><p class="mu" style="margin:6px 0 10px">Escolha o período. O backup guarda as vendas desse período no sistema e baixa um arquivo.</p>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label>De</label><input type="date" id="cbi" value="${pi}" style="margin:0"></div><div><label>Até</label><input type="date" id="cbf" value="${pf}" style="margin:0"></div></div>
-<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn p" onclick="backupDoPeriodo()">💾 Criar backup e baixar</button><label class="btn" style="margin:0;cursor:pointer">📂 Adicionar backup (arquivo)<input type="file" accept=".json,application/json" hidden onchange="addBackupArq(this)"></label></div>
-<div style="margin-top:14px">${BK.map(b=>`<div class="row"><div><b>${dt(b.periodo_ini+'T12:00:00')} a ${dt(b.periodo_fim+'T12:00:00')}</b> <span class="tag">${b.qtd} venda(s)</span><br><span class="mu" style="font-size:12px">Salvo em ${new Date(b.criado_em).toLocaleString('pt-BR')}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn s" onclick="baixarBackup(${b.id})">⬇️ Baixar</button><button class="btn s p" onclick="restaurarBackup(${b.id})">♻️ Restaurar</button><button class="btn s d" onclick="apagarBackup(${b.id})">🗑</button></div></div>`).join('')||'<p class="mu">Nenhum backup salvo ainda.</p>'}</div></div>
-<div class="card"><b style="font-size:16px">🧹 Apagar vendas de um período</b><p class="mu" style="margin:6px 0 10px">Apaga as vendas do período escolhido acima (De e Até). Antes de apagar, o sistema salva um backup desse período.</p><button class="btn d" onclick="apagarPeriodo()">🗑 Apagar vendas do período</button></div>`}
-async function fazerBackup(ini,fim){
- const x=pEx(ini,fim);if(x){alert(x);return null}
- const r=await sb.from('orders').select('*').gte('created_at',pIni(ini)).lte('created_at',pFim(fim)).order('id');if(err(r.error))return null;
- const dados=r.data||[];
- const s=await sb.from('backups').insert({periodo_ini:ini,periodo_fim:fim,qtd:dados.length,dados}).select('id').single();if(err(s.error))return null;
- return {id:s.data.id,ini,fim,qtd:dados.length,dados}}
-function baixarJSON(b){const j={versao:1,periodo_ini:b.ini,periodo_fim:b.fim,qtd:b.qtd,criado_em:new Date().toISOString(),dados:b.dados};const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(j)],{type:'application/json'}));a.download='backup_vendas_'+b.ini+'_a_'+b.fim+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}
-async function backupDoPeriodo(){const b=await fazerBackup($('#cbi').value,$('#cbf').value);if(!b)return;baixarJSON(b);alert('Backup salvo: '+b.qtd+' venda(s). O arquivo foi baixado. ✅');loadBk()}
-async function baixarBackup(id){const r=await sb.from('backups').select('*').eq('id',id).single();if(err(r.error))return;const b=r.data;baixarJSON({ini:b.periodo_ini,fim:b.periodo_fim,qtd:b.qtd,dados:b.dados})}
-async function addBackupArq(el){const f=el.files[0];el.value='';if(!f)return;let j;try{j=JSON.parse(await f.text())}catch(e){return alert('Esse arquivo não é um backup válido.')}
- const d=j&&j.dados;if(!Array.isArray(d)||!j.periodo_ini||!j.periodo_fim)return alert('Esse arquivo não é um backup do sistema.');
- const r=await sb.from('backups').insert({periodo_ini:j.periodo_ini,periodo_fim:j.periodo_fim,qtd:d.length,dados:d});if(err(r.error))return;alert('Backup adicionado à lista ✅');loadBk()}
-async function restaurarBackup(id){const b=(BK||[]).find(x=>x.id==id);if(!b)return;
- if(!confirm('Restaurar o backup de '+dt(b.periodo_ini+'T12:00:00')+' a '+dt(b.periodo_fim+'T12:00:00')+'?\n\nAs vendas atuais desse período serão SUBSTITUÍDAS pelas do backup. Antes, o sistema salva uma cópia do período atual.'))return;
- const c=await fazerBackup(b.periodo_ini,b.periodo_fim);if(!c)return;
- const r=await sb.rpc('admin_restaurar_backup',{bid:id});if(err(r.error))return;
- alert('Restaurado: '+r.data+' venda(s). Uma cópia de segurança do período atual foi salva. ✅');await refresh();loadBk()}
-async function apagarBackup(id){if(!confirm('Apagar este backup da lista? As vendas no sistema não são afetadas.'))return;const r=await sb.from('backups').delete().eq('id',id);if(err(r.error))return;loadBk()}
-async function apagarPeriodo(){const ini=$('#cbi').value,fim=$('#cbf').value;const x=pEx(ini,fim);if(x)return alert(x);
- const t=prompt('ATENÇÃO: isso apaga as vendas de '+dt(ini+'T12:00:00')+' a '+dt(fim+'T12:00:00')+' do sistema.\n\nAntes, será salvo um backup desse período.\n\nPara confirmar, digite APAGAR:');
- if(t!=='APAGAR')return;
- const c=await fazerBackup(ini,fim);if(!c)return;
- const r=await sb.rpc('admin_apagar_pedidos_periodo',{ini,fim});if(err(r.error))return;
- alert(r.data+' venda(s) apagada(s). O backup de segurança está na lista. ✅');await refresh();loadBk()}
-function editUser(id){const u=U.find(x=>x.id==id);if(u)contaModal(u,true)}
-function minhaConta(){contaModal(me,false)}
-function contaModal(u,adm){const m=document.createElement('div');m.className='modal';
- m.innerHTML=`<div><h2>${adm?'✏️ Editar conta':'⚙️ Minha conta'}</h2><p class="mu">${E(u.name)}</p><label>E-mail de login</label><input id="ce" type="email" value="${E(u.email)}"><label>Apelido (como você quer ser chamado)</label><input id="ca" value="${E(u.apelido||'')}" maxlength="30"><label>WhatsApp (com DDD)</label><input id="ct" type="tel" value="${E(u.phone||'')}"><p class="mu" style="font-size:12px">Depois de trocar o e-mail, entre com o novo e-mail na próxima vez.</p><button class="btn p" style="width:100%" id="cs">Salvar</button><button class="btn" style="width:100%;margin-top:8px" id="cc">Cancelar</button></div>`;
- document.body.appendChild(m);
- m.querySelector('#cc').onclick=()=>m.remove();
- m.querySelector('#cs').onclick=async()=>{const e=m.querySelector('#ce').value.trim().toLowerCase(),a=m.querySelector('#ca').value.trim(),t=m.querySelector('#ct').value.replace(/\D/g,'');
-  if(!emailOk(e))return alert('E-mail inválido');if(t&&t.length<10)return alert('WhatsApp com DDD (10 ou 11 números)');
-  const r=await sb.rpc('editar_conta',{uid:u.id,novo_email:e,novo_apelido:a,novo_tel:t});if(err(r.error))return;
-  m.remove();if(u.id==me.id){me.email=e;me.apelido=a;if(t)me.phone=t}alert('Dados salvos! ✅');refresh()}}
-function sepLogo(){return localStorage.getItem('portal_sep_logo')||''}
+function sepLogo(){try{return localStorage.getItem('portal_sep_logo')||''}catch(e){return ''}}
 function sepConfig(){
   const [a,b]=rng('ped'),logo=sepLogo(),m=document.createElement('div');m.className='modal';
   m.innerHTML=`<div><h2>🖨️ Lista de separação</h2>
@@ -289,7 +252,7 @@ function sepConfig(){
   m.querySelector('#sepno').onclick=()=>m.remove();
   m.querySelector('#sepgo').onclick=async()=>{
     const logoNow=m.dataset.logo||logo;
-    if(m.dataset.logo)localStorage.setItem('portal_sep_logo',m.dataset.logo);
+    if(m.dataset.logo){try{localStorage.setItem('portal_sep_logo',m.dataset.logo)}catch(e){}}
     await gerarSeparacaoPDF({a,b,logo:logoNow,empresa:m.querySelector('#sepempresa').value.trim(),ord:m.querySelector('#sepord').value});
     m.remove();
   };
@@ -374,13 +337,44 @@ function xl(){
  l.slice().reverse().forEach(o=>o.items.forEach(i=>{
   const sku=i.sku||skuOf(P.find(p=>p.id==i.id)?.vars.find(v=>v.n==i.v),i.c)||i.name||'',sub=Math.round(i.p*i.q*100)/100;q+=i.q;t+=sub;
   const r=res[o.who]||(res[o.who]={'Vendedor':o.who,'Pedidos':new Set(),'Quantidade':0,'Total (R$)':0});r.Pedidos.add(o.id);r.Quantidade+=i.q;r['Total (R$)']+=sub;
-  rows.push({'Data':day(o),'Hora':tm(o.created_at),'Pedido':o.id,'Vendedor':o.who,'E-mail':o.email||'','SKU':sku,'Produto':i.name,'Opção':i.v,'Cor':i.c,'Etiqueta':i.etiqueta||'','Conjunto':i.conjunto?'Sim':'Não','Quantidade':i.q,'Valor revenda (un.)':i.p,'Subtotal':sub,'Estado':es[o.status]||'Novo','Horário de busca':({manha:'Manhã',tarde:'Tarde'}[o.pickup]||'Qualquer horário'),'Observação':o.note||''})}));
+  rows.push({'Data':day(o),'Hora':tm(o.created_at),'Pedido':o.id,'Vendedor':o.who,'E-mail':o.email||'','SKU':sku,'Produto':i.name,'Opção':i.v,'Cor':i.c,'Etiqueta':i.etiqueta||'','Conjunto':i.conjunto?'Sim':'Não','Quantidade':i.q,'Valor revenda (un.)':i.p,'Subtotal':sub,'Estado':es[o.status]||'Novo','Horário de busca':({manha:'Manhã',tarde:'Tarde'}[o.pickup]||'Qualquer horário'),'Observação':cleanNote(o.note)})}));
  rows.push({});rows.push({'Vendedor':'TOTAL','Quantidade':q,'Subtotal':Math.round(t*100)/100});
  const ws=XLSX.utils.json_to_sheet(rows);ws['!cols']=[11,7,8,22,26,18,24,18,12,11,18,12,16,18,30].map(w=>({wch:w}));
  Object.keys(ws).forEach(k=>{if(/^[KL]\d+$/.test(k)&&ws[k].t=='n')ws[k].z='"R$" #,##0.00'});
  const rs=Object.values(res).map(r=>({...r,Pedidos:r.Pedidos.size,'Total (R$)':Math.round(r['Total (R$)']*100)/100})).sort((a,b)=>b['Total (R$)']-a['Total (R$)']),w2=XLSX.utils.json_to_sheet(rs);
  w2['!cols']=[26,10,12,14].map(w=>({wch:w}));Object.keys(w2).forEach(k=>{if(/^D\d+$/.test(k)&&w2[k].t=='n')w2[k].z='"R$" #,##0.00'});
- const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Vendas');XLSX.utils.book_append_sheet(wb,w2,'Por vendedor');
+ const sm={};
+ l.forEach(o=>{
+  const key=o.user_id||o.email||o.who;
+  const s=sm[key]||(sm[key]={name:o.who||o.email||'—',email:o.email||'',orders:new Set(),total:0,products:{}});
+  s.orders.add(o.id);s.total+=Number(o.total)||0;
+  (o.items||[]).forEach(i=>{
+   const prod=P.find(p=>p.id==i.id),name=i.name||prod?.name||'Produto sem nome';
+   const x=s.products[name]||(s.products[name]={qty:0,value:0,skus:new Set()});
+   x.qty+=Number(i.q)||0;x.value+=(Number(i.p)||0)*(Number(i.q)||0);
+   const sku=i.sku||skuOf(prod?.vars?.find(v=>v.n==i.v),i.c)||'';
+   if(sku)x.skus.add(sku);
+  });
+ });
+ const sellerReport=Object.values(sm).map(s=>{
+  const best=Object.entries(s.products).sort((a,b)=>b[1].qty-a[1].qty||b[1].value-a[1].value||a[0].localeCompare(b[0],'pt-BR'))[0]||['—',{qty:0,value:0,skus:new Set()}];
+  return{s,product:best[0],info:best[1]};
+ }).sort((a,b)=>b.s.total-a.s.total);
+ const topRows=sellerReport.map((x,i)=>({
+  'Posição por faturamento':i+1,
+  'Revendedor':x.s.name,
+  'E-mail':x.s.email,
+  'Pedidos':x.s.orders.size,
+  'Faturamento total':Math.round(x.s.total*100)/100,
+  'Produto mais vendido':x.product,
+  'Unidades do produto':x.info.qty,
+  'Faturamento do produto':Math.round(x.info.value*100)/100,
+  'SKUs do produto':Array.from(x.info.skus).join(', ')
+ }));
+ const w3=XLSX.utils.json_to_sheet(topRows);
+ w3['!cols']=[18,24,30,10,18,32,18,22,34].map(w=>({wch:w}));
+ Object.keys(w3).forEach(k=>{if(/^[EH]\d+$/.test(k)&&w3[k].t=='n')w3[k].z='"R$" #,##0.00'});
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Vendas');XLSX.utils.book_append_sheet(wb,w2,'Por vendedor');XLSX.utils.book_append_sheet(wb,w3,'Mais vendido por revendedor');
  XLSX.writeFile(wb,'vendas_'+(xa||'inicio')+(xb&&xb!=xa?'_a_'+xb:'')+'.xlsx')}
 async function autoSku(){if(!confirm('Gerar SKU automático para cada cor que estiver sem código?'))return;
  for(const p of P){const cs=p.colors.split(',').map(x=>x.trim()).filter(Boolean),vars=p.vars.map(v=>{const{sku,...r}=v,k={...(v.skus||{})};cs.forEach(c=>{if(!k[c])k[c]=skuOf(v,c)||slug(p.name+'-'+v.n+'-'+c)});return{...r,skus:k}});
@@ -420,14 +414,15 @@ function prodV(){return hdr('Produção')+`<div class="wrap"><div class="card g"
 /* ---------- REVENDEDOR ---------- */
 function resV(){const cats=['Todos',...new Set(P.map(p=>p.cat))],list=P.filter(p=>(cat=='Todos'||p.cat==cat)&&p.name.toLowerCase().includes(q.toLowerCase()));
  const tot=cart.reduce((a,i)=>a+i.p*i.q,0),n=cart.reduce((a,i)=>a+i.q,0);
- return hdr('Preços de Revenda')+`<div class="wrap"><div class="card g" style="color:#fff;margin-bottom:12px"><b style="font-size:18px">Olá, ${E(me.apelido||me.name)} 👋</b><br>Escolha o produto, cor e quantidade. O total é calculado automaticamente.</div>${labelEnabled?'<div class="card" style="background:#ff6bb522;border-color:#ff6bb5;margin-bottom:12px"><b>🏷 Etiquetas ativadas</b><br><span class="mu">No carrinho, informe a etiqueta e selecione os produtos que devem sair juntos na mesma embalagem.</span></div>':''}${O.some(o=>o.status=='concluido')?`<div class="card" style="background:#16a34a;color:#fff;margin-bottom:12px"><b>🎉 ${O.filter(o=>o.status=='concluido').length} pedido(s) pronto(s): pode vir buscar!</b></div>`:''}
+ return hdr('Preços de Revenda')+`<div class="wrap"><div class="card g" style="color:#fff;margin-bottom:12px"><b style="font-size:18px">Olá, ${E(me.name)} 👋</b><br>Escolha o produto, cor e quantidade. O total é calculado automaticamente.</div>${labelEnabled?'<div class="card" style="background:#ff6bb522;border-color:#ff6bb5;margin-bottom:12px"><b>🏷 Etiquetas ativadas</b><br><span class="mu">No carrinho, informe a etiqueta e selecione os produtos que devem sair juntos na mesma embalagem.</span></div>':''}${O.some(o=>o.status=='concluido')?`<div class="card" style="background:#16a34a;color:#fff;margin-bottom:12px"><b>🎉 ${O.filter(o=>o.status=='concluido').length} pedido(s) pronto(s): pode vir buscar!</b></div>`:''}
+${customerReportV(false)}
 <input id="qs" placeholder="🔍 Buscar produto..." value="${E(q)}" oninput="q=this.value;rl(this)"><div class="tabs">${cats.map(c=>`<button class="tab ${cat==c?'on':''}" data-c="${E(c)}" onclick="cat=this.dataset.c;go()">${E(c)}</button>`).join('')}</div>
 <div class="grid">${list.map(p=>{const cs=p.colors.split(',').map(s=>s.trim()).filter(Boolean);return`<div class="card"><div class="img" style="${okImg(p.img)?`background-image:url('${E(okImg(p.img))}')`:''}">${okImg(p.img)?'':E(p.emo)}</div><b>${E(p.name)}</b>
 <select id="v${p.id}" onchange="pp(${p.id})">${p.vars.map((v,i)=>`<option value="${i}">${E(v.n)} — ${R(v.p)}</option>`).join('')}</select>
 <select id="c${p.id}">${cs.map(c=>`<option>${E(c)}</option>`).join('')||'<option>Único</option>'}</select>
 <div class="row" style="border:0;padding:0"><input id="q${p.id}" type="number" min="1" value="1" style="width:70px;margin:0"><span class="price" id="pr${p.id}">${R(p.vars[0].p)}</span></div>
 <button class="btn p" style="width:100%;margin-top:10px" onclick="add(${p.id})">Adicionar</button></div>`}).join('')||'<p class="mu">Nada encontrado.</p>'}</div>
-${O.length?`<h2>Meus pedidos</h2>${O.map(o=>`<div class="ord ${o.status}"><div class="row" style="border:0;padding:0"><div>${stTag(o.status)} ${pkTag(o)}<br><span class="mu" style="font-size:12px">${dt(o.created_at)} às ${tm(o.created_at)} · #${o.id}</span></div><b class="price">${R(o.total)}</b></div><div class="steps">${[1,2,3].map(n=>`<i class="${n<=({novo:1,producao:2,concluido:3}[o.status]||1)?'on':''}"></i>`).join('')}</div><div class="mu" style="font-size:13px">${o.items.map(itL).join('<br>')}</div>${noteBox(o)}</div>`).join('')}`:''}<div style="height:90px"></div></div>
+${O.length?`<h2>Meus pedidos</h2>${O.map(o=>`<div class="ord ${o.status}"><div class="row" style="border:0;padding:0"><div>${stTag(o.status)} ${pkTag(o)}<br><span class="mu" style="font-size:12px">${dt(o.created_at)} às ${tm(o.created_at)} · #${o.id}</span></div><b class="price">${R(o.total)}</b></div><div class="steps">${[1,2,3].map(n=>`<i class="${n<=({novo:1,producao:2,concluido:3}[o.status]||1)?'on':''}"></i>`).join('')}</div><div class="mu" style="font-size:13px">${o.items.map(itL).join('<br>')}</div>${noteBox(o)}<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn s" onclick="requestOrder(${o.id},'alterar')">✏️ Solicitar alteração</button><button class="btn s d" onclick="requestOrder(${o.id},'cancelar')">Solicitar cancelamento</button></div></div>`).join('')}`:''}<div style="height:90px"></div></div>
 ${n?`<div class="cartbar"><button class="btn p" style="width:100%;padding:15px;font-size:16px" onclick="cartV()">🛒 ${n} itens · ${R(tot)} — Finalizar</button></div>`:''}`}
 function rl(el){const s=el.selectionStart,id=el.id;go();const i=document.getElementById(id);i.focus();i.setSelectionRange(s,s)}
 function pp(id){$('#pr'+id).textContent=R(P.find(x=>x.id==id).vars[$('#v'+id).value].p)}
@@ -445,6 +440,9 @@ function cartV(){let nt='',pk='qualquer';const m=document.createElement('div');m
  const draw=()=>{const t=cart.reduce((a,i)=>a+i.p*i.q,0);m.innerHTML=`<div><h2>🛒 Seu pedido</h2><label>Nome do revendedor</label><input id="rn" value="${E(me.name)}"><label>WhatsApp (avisamos quando estiver pronto)</label><input id="rt" type="tel" value="${E(me.phone||(()=>{try{return localStorage.getItem('rvphone')||''}catch(e){return ''}})())}">
 ${cart.map((i,k)=>`<div class="row" style="display:block"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div><b>${E(i.name)}</b><br><span class="mu">${E(i.v)} · ${E(i.c)} · ${R(i.p)}</span></div><div>${i.q}x <b>${R(i.p*i.q)}</b> <button class="btn s d" data-k="${k}">✕</button></div></div>${labelEnabled?`<div style="margin-top:8px;padding:10px;border-radius:12px;background:#ff6bb511;border:1px solid #ff6bb544"><label>🏷 Etiqueta da embalagem</label><input data-label="${k}" value="${E(i.etiqueta||'')}" placeholder="Ex.: KIT MARROM" style="margin:3px 0 7px"><label>📎 Arquivo da etiqueta (qualquer tipo)</label><input type="file" data-file="${k}" style="margin:3px 0 7px">${i.arquivo?`<small class="mu">Anexado: ${E(i.arquivo.nome)}</small>${i.texto?' <small class="mu">· texto lido ✓</small>':''}`:''}<label>📦 Produto que vai junto</label><select data-pair="${k}" style="margin:3px 0 0"><option value="">Avulso, embalagem separada</option>${cart.map((x,j)=>j==k?'':`<option value="${j}" ${String(i.par)==String(j)?'selected':''}>${E(x.name)} · ${E(x.v)} · ${E(x.c)}</option>`).join('')}</select><small class="mu">Para a mesma embalagem, use a mesma etiqueta nos dois itens.</small></div>`:''}</div>`).join('')}
 <label style="display:block;margin-top:10px">🕒 Em qual parte do dia você vai buscar?</label><div class="tabs" style="margin:4px 0 0">${Object.keys(PKL).map(k=>`<button class="tab ${pk==k?'on':''}" data-pk="${k}">${PKL[k]}</button>`).join('')}</div>
+<label style="display:block;margin-top:10px">👤 Cliente final (opcional)</label><input id="cfname" placeholder="Nome do cliente final">
+<label>WhatsApp do cliente final (opcional)</label><input id="cfphone" type="tel" placeholder="DDD + número">
+<label>Valor da venda ao cliente final (opcional)</label><input id="cfvalue" type="number" min="0" step="0.01" placeholder="Ex.: 120,00">
 <label style="display:block;margin-top:10px">📝 Observação (opcional)</label><textarea id="rk" rows="3" placeholder="Ex.: bordar o nome do pet, cor especial, prazo..."></textarea>
 <div class="row"><b>Total</b><span class="price">${R(t)}</span></div><button class="btn p" style="width:100%" id="sd">Enviar pedido</button><button class="btn" style="width:100%;margin-top:8px" id="cl">Fechar</button></div>`;
  m.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{cart.splice(Number(b.dataset.k),1);if(!cart.length){m.remove()}else draw();go()});
@@ -455,7 +453,9 @@ ${cart.map((i,k)=>`<div class="row" style="display:block"><div style="display:fl
  m.querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{pk=b.dataset.pk;m.querySelectorAll('[data-pk]').forEach(x=>x.classList.toggle('on',x.dataset.pk==pk))});m.querySelector('#rk').value=nt;m.querySelector('#rk').oninput=e=>nt=e.target.value;
  m.querySelector('#sd').onclick=async()=>{const ph=$('#rt').value.replace(/\D/g,'');if(ph.length<10)return alert('Informe o WhatsApp com DDD para avisarmos quando estiver pronto');try{localStorage.setItem('rvphone',ph)}catch(e){}
  cart.forEach((i,k)=>{const j=Number(i.par);if(Number.isInteger(j)&&cart[j]){const lab=(i.etiqueta||cart[j].etiqueta||'CONJUNTO '+(k+1)).trim();i.etiqueta=lab;cart[j].etiqueta=lab;const af=i.arquivo||cart[j].arquivo;if(af){i.arquivo=af;cart[j].arquivo=af}const tx=i.texto||cart[j].texto;if(tx){i.texto=tx;cart[j].texto=tx}}});
- const items=cart.map(i=>({...i,conjunto:i.par!==''}));const r=await sb.from('orders').insert({user_id:me.id,email:me.email,phone:ph,pickup:pk,note:nt.trim()||null,who:$('#rn').value.trim()||me.name,items,total:t});if(err(r.error))return;cart=[];m.remove();alert('Pedido enviado ao admin! ✅');refresh()}};
+ const items=cart.map(i=>({...i,conjunto:i.par!==''})),final={name:$('#cfname').value.trim(),phone:$('#cfphone').value.replace(/\D/g,''),value:Math.max(0,Number($('#cfvalue').value)||0)},hasFinal=final.name||final.phone||Number($('#cfvalue').value)>0;
+ const note=[nt.trim(),hasFinal?'[[CF:'+encodeURIComponent(JSON.stringify(final))+']]':''].filter(Boolean).join('\n');
+ const r=await sb.from('orders').insert({user_id:me.id,email:me.email,phone:ph,pickup:pk,note:note||null,who:$('#rn').value.trim()||me.name,items,total:t});if(err(r.error))return;cart=[];m.remove();alert('Pedido enviado ao admin! ✅');refresh()}};
  draw();document.body.appendChild(m)}
 setInterval(()=>{if(me&&!$('#msgs')&&!document.querySelector('.modal')&&!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))refresh()},30000);
 setInterval(async()=>{if(me&&(me.role=='admin'||me.role=='rev')&&$('#msgs')){await loadMsgs();drawMsgs();markRead(curConv())}},8000);
