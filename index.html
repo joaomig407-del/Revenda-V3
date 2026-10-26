@@ -67,20 +67,20 @@ let me=null,P=[],U=[],O=[],cart=[],cat='Todos',q='',atab='dash',pfile=null,oemai
 const ORDER_LABEL_TAG='__ORDER_LABELS__';let labelEnabled=false;
 const err=e=>{if(e){alert(e.message);return true}};
 const dt=s=>new Date(s).toLocaleDateString('pt-BR');
-async function load(){await loadAviso();
+async function load(){
  let r=await sb.from('products').select('*').order('id');P=r.data||[];
  r=await sb.from('orders').select('*').order('id',{ascending:false});O=r.data||[];
  if(me.role=='admin'){r=await sb.from('profiles').select('*').in('role',['rev','prod','owner']).order('name');U=r.data||[];r=await sb.from('rev_meta').select('*');M={};(r.data||[]).forEach(x=>M[x.rev_id]={tags:x.tags||[],note:x.note||''})}else if(me.role=='rev'){const z=await sb.from('rev_meta').select('tags').eq('rev_id',me.id).maybeSingle();labelEnabled=!!(z.data?.tags||[]).includes(ORDER_LABEL_TAG)}await loadMsgs()}
 async function boot(){
  if(SUPABASE_URL.startsWith('COLE'))return $('#app').innerHTML='<div class="wrap"><div class="card"><h2>Configure o Supabase</h2><p>Edite o index.html e cole a URL e a anon key no topo do script.</p></div></div>';
- await loadAviso();const{data:{session}}=await sb.auth.getSession();
+ const{data:{session}}=await sb.auth.getSession();
  if(session)await enter(session.user.id,true);else go()}
 async function enter(id,silent){
  document.querySelectorAll('.modal,.splash').forEach(e=>e.remove());
  const{data}=await sb.from('profiles').select('*').eq('id',id).single();
  if(!data||data.status!='active'){if(!silent||data)alert(!data?'Acesso removido.':data.status=='pending'?'Cadastro aguardando aprovação do admin.':'Acesso bloqueado.');await sb.auth.signOut();me=null;return go()}
  me=data;labelEnabled=false;await load();go();rt();if(!silent)splash(data.name)}
-function go(){if(AV?.manut&&!(me?me.role=='admin':avAdm)){$('#app').innerHTML=manutV();document.querySelectorAll('.aviso-bar').forEach(e=>e.remove());return}$('#app').innerHTML=!me?loginV():me.role=='admin'?adminV():me.role=='prod'?prodV():me.role=='owner'?ownerV():resV();drawAviso()}
+function go(){$('#app').innerHTML=!me?loginV():me.role=='admin'?adminV():me.role=='prod'?prodV():me.role=='owner'?ownerV():resV()}
 function loginV(reg){return`<div class="login g">${Array.from({length:14},()=>`<span class="pw" style="left:${Math.random()*100}%;animation-duration:${6+Math.random()*8}s;animation-delay:-${Math.random()*10}s;font-size:${18+Math.random()*26}px">🐾</span>`).join('')}<div class="card"><h2><span class="bob">🐾</span> Portal do Revendedor</h2><p class="mu">${reg?'Crie sua conta. O admin precisa aprovar.':'Entre com seu e-mail.'}</p>
 ${reg?'<label>Seu nome</label><input id="n"><label>WhatsApp (com DDD)</label><input id="tel" type="tel" placeholder="11999999999">':''}<label>E-mail</label><input id="e" type="email"><label>Senha</label><input id="p" type="password" onkeydown="if(event.key=='Enter')this.closest('.card').querySelector('.btn.p').click()">
 <button class="btn p" style="width:100%" onclick="${reg?'signup()':'login()'}">${reg?'Cadastrar':'Entrar'}</button>
@@ -139,12 +139,6 @@ function editProfile(id){
  };
 }
 let cfgFrom='',cfgTo='',cfgLimit='todos';
-let AV=null,avAdm=false;
-async function loadAviso(){try{const r=await sb.from('avisos_sistema').select('*').order('id',{ascending:false}).limit(1).maybeSingle();AV=r.data||null}catch(e){}}
-function drawAviso(){document.querySelectorAll('.aviso-bar').forEach(e=>e.remove());if(!AV||!AV.ativo||!AV.texto)return;const k='av_'+AV.id+'_'+(AV.atualizado_em||'');if(sessionStorage.getItem(k))return;const d=document.createElement('div');d.className='aviso-bar';d.style.cssText='position:relative;background:#fff7d6;color:#3b2f00;padding:10px 42px 10px 14px;font-size:14px;line-height:1.4;border-bottom:1px solid #f0d77a';d.innerHTML=E(AV.texto)+'<button style="position:absolute;right:8px;top:6px;border:0;background:none;font-size:18px;cursor:pointer;color:inherit" aria-label="Fechar">✕</button>';d.querySelector('button').onclick=()=>{try{sessionStorage.setItem(k,'1')}catch(e){}d.remove()};document.body.insertBefore(d,$('#app'))}
-function manutV(){return `<div class="login g"><div class="card"><h2><span class="bob">🛠️</span> Em manutenção</h2><p class="mu">${E(AV.msg_manut||'Estamos fazendo melhorias no sistema. Volte em alguns minutos.')}</p>${me?'<button class="btn" style="width:100%" onclick="out()">Sair</button>':'<p style="text-align:center"><a href="#" onclick="avAdm=true;go();return false" style="color:var(--ac)">Acesso administrador</a></p>'}</div></div>`}
-function avisosV(){const a=AV||{};return `<div class="card"><h2 style="margin-top:0">📣 Aviso para os revendedores</h2><p class="mu">Aparece no topo do portal de todos os revendedores até ser fechado.</p><label>Texto do aviso</label><textarea id="avt" rows="3">${E(a.texto||'')}</textarea><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ava" ${a.ativo?'checked':''} style="width:18px;height:18px;margin:0">Mostrar aviso</label><button class="btn p" onclick="saveAviso()">Salvar aviso</button></div><div class="card" style="margin-top:12px"><h2 style="margin-top:0">🛠️ Manutenção do site</h2><p class="mu">Quando ligada, os revendedores veem a tela de manutenção e não conseguem entrar. Você continua com acesso.</p><label>Mensagem da manutenção</label><textarea id="avm" rows="2">${E(a.msg_manut||'')}</textarea><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="avmo" ${a.manut?'checked':''} style="width:18px;height:18px;margin:0">Site em manutenção</label><button class="btn d" onclick="saveAviso()">Salvar manutenção</button></div>`}
-async function saveAviso(){if(!me||me.role!='admin')return;const g=id=>document.getElementById(id);const o={texto:g('avt').value.trim()||null,ativo:g('ava').checked,msg_manut:g('avm').value.trim()||null,manut:g('avmo').checked,atualizado_em:new Date().toISOString()};const r=AV?.id?await sb.from('avisos_sistema').update(o).eq('id',AV.id):await sb.from('avisos_sistema').insert(o);if(err(r.error))return;await loadAviso();go();alert('Salvo! ✅')}
 function configV(){
  if(!cfgFrom||!cfgTo){const now=new Date();cfgFrom=iso(new Date(now.getFullYear(),now.getMonth(),1));cfgTo=iso(now)}
  return `<div class="grid">
@@ -189,11 +183,11 @@ async function deletePeriodSales(){
  await refresh();alert(`${count} venda(s) apagada(s).`);
 }
 async function refresh(){await load();go()}
-function adminV(){const tot=O.reduce((a,o)=>a+Number(o.total),0),T=[['dash','📊 Painel'],['prod','📦 Produtos'],['rev','👥 Revendedores'],['ped','🧾 Pedidos'],['clientes','👥 Clientes finais'],['chat','💬 Chat'+(unA()?' 🔴'+unA():'')],['config','⚙️ Configurações'],['avisos','📣 Avisos']];let b='';
+function adminV(){const tot=O.reduce((a,o)=>a+Number(o.total),0),T=[['dash','📊 Painel'],['prod','📦 Produtos'],['rev','👥 Revendedores'],['ped','🧾 Pedidos'],['clientes','👥 Clientes finais'],['chat','💬 Chat'+(unA()?' 🔴'+unA():'')],['config','⚙️ Configurações']];let b='';
  if(atab=='dash')b=`<div class="stats"><div class="stat g"><b>${P.length}</b>Produtos</div><div class="stat" style="background:#0ea5e9"><b>${U.filter(u=>u.role=='rev'&&u.status=='active').length}</b>Revendedores</div><div class="stat" style="background:#f59e0b"><b>${U.filter(u=>u.status=='pending').length}</b>Pendentes</div></div>`+dashV();
  if(atab=='prod')b=`<button class="btn p" onclick="pedit()">+ Novo produto</button> <button class="btn" onclick="autoSku()">🔖 Gerar SKUs vazios</button><div class="grid" style="margin-top:12px">${P.map(p=>`<div class="card"><div class="img" style="${p.img?`background-image:url(${E(p.img)})`:''}">${p.img?'':E(p.emo)}</div><b>${E(p.name)}</b> <span class="tag">${E(p.cat)}</span><div class="mu" style="font-size:13px;margin:6px 0">${p.vars.map(v=>E(v.n)+' '+R(v.p)).join(' · ')}</div><button class="btn s" onclick="pedit(${p.id})">Editar</button> <button class="btn s d" onclick="pdel(${p.id})">Excluir</button></div>`).join('')}</div>`;
  if(atab=='rev')b=`${labelPanel()}<div class="card"><h2>Revendedores</h2><button class="btn s" onclick="upass('${me.id}')">🔑 Alterar minha senha</button>${U.map(u=>`<div class="row"><div><b>${E(u.name)}</b>${u.role=='prod'?' <span class="tag">🏭 Produção</span>':''}${u.role=='owner'?' <span class="tag">👑 Dono</span>':''}<br><span class="mu">${E(u.email)}</span></div><div><span class="tag ${u.status=='active'?'ok':'w'}">${u.status=='active'?'Ativo':u.status=='pending'?'Pendente':'Bloqueado'}</span> ${u.status!='active'?`<button class="btn s p" onclick="ust('${u.id}','active')">Aprovar</button>`:`<button class="btn s" onclick="ust('${u.id}','blocked')">Bloquear</button>`} <select onchange="urole('${u.id}',this.value)" style="width:auto;margin:0;padding:6px"><option value="rev" ${u.role=='rev'?'selected':''}>Revendedor</option><option value="prod" ${u.role=='prod'?'selected':''}>Produção</option><option value="owner" ${u.role=='owner'?'selected':''}>👑 Dono</option></select> <label class="tag" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" ${labelsOnFor(u.id)?'checked':''} onchange="toggleLabels('${u.id}',this.checked)" style="width:17px;height:17px;margin:0">🏷 Etiquetas no pedido</label> <button class="btn s" onclick="editProfile('${u.id}')">✏️ Dados</button> <button class="btn s" onclick="upass('${u.id}')">🔑 Senha</button> <button class="btn s d" onclick="udel('${u.id}')">Remover</button></div></div>`).join('')||'<p class="mu">Nenhum revendedor ainda.</p>'}</div>`;
- if(atab=='ped')b=ordersV(true);if(atab=='clientes')b=customerReportV(true);if(atab=='chat')b=chatAdminV();if(atab=='config')b=configV();if(atab=='avisos')b=avisosV();
+ if(atab=='ped')b=ordersV(true);if(atab=='clientes')b=customerReportV(true);if(atab=='chat')b=chatAdminV();if(atab=='config')b=configV();
  return hdr('Admin')+`<div class="wrap"><div class="tabs">${T.map(t=>`<button class="tab ${atab==t[0]?'on':''}" onclick="atab='${t[0]}';go()">${t[1]}</button>`).join('')}</div>${b}</div>`}
 async function refresh(){await load();go()}
 async function ust(id,s){if(err((await sb.from('profiles').update({status:s}).eq('id',id)).error))return;refresh()}
