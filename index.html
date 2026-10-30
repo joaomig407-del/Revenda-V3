@@ -65,6 +65,7 @@ const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const okImg=u=>typeof u=='string'&&u.startsWith(SUPABASE_URL+'/storage/')?u:'';
 let me=null,P=[],U=[],O=[],cart=[],cat='Todos',q='',atab='dash',pfile=null,oemail='',ost='todos';
 const ORDER_LABEL_TAG='__ORDER_LABELS__';let labelEnabled=false;
+const isAdmin=()=>!!(me&&me.role=='admin');
 const err=e=>{if(e){alert(e.message);return true}};
 const dt=s=>new Date(s).toLocaleDateString('pt-BR');
 async function load(){await loadAviso();
@@ -472,6 +473,8 @@ async function autoSku(){if(!confirm('Gerar SKU automático para cada cor que es
 function waBtn(o){const t=(o.phone||'').replace(/\D/g,'');if(t.length<10)return '<span class="mu" style="font-size:12px">sem WhatsApp</span>';
  const n=t.length<=11?'55'+t:t,m=`Olá, ${o.who}! 🎉 Seu pedido #${o.id} está pronto: pode vir buscar${o.pickup=='manha'?' pela manhã 🌅':o.pickup=='tarde'?' à tarde ☀️':' em qualquer horário 🕐'}! 📦 Total: ${R(o.total)}. Obrigado pela preferência!`;
  return `<a class="btn p" style="text-decoration:none;background:#25d366" href="https://wa.me/${n}?text=${encodeURIComponent(m)}" target="_blank" rel="noopener">📲 Avisar no WhatsApp</a>`}
+function histBtn(o){return isAdmin()?`<button class="btn s" onclick="histV(${o.id})">🕒 Histórico</button>`:''}
+function histV(id){if(!isAdmin())return;const o=O.find(x=>x.id==id);if(!o)return;alert('Histórico do pedido #'+id+(o?'':'')+': disponível apenas para o administrador.')}
 function ordersV(adm,ro){
  const l=inR('ped').filter(o=>(ost=='todos'||o.status==ost)&&(opk=='todos'||(o.pickup||'qualquer')==opk)&&(o.email||'').toLowerCase().includes(oemail.trim().toLowerCase())),cnt=s=>O.filter(o=>s=='todos'||o.status==s).length,stp=s=>({novo:1,producao:2,concluido:3}[s]||1);
  return `${fbar('ped')}${adm||ro?xlCard():''}<input id="fe" placeholder="🔍 Filtrar por e-mail..." value="${E(oemail)}" oninput="oemail=this.value;rl(this)">
