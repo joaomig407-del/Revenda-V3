@@ -72,7 +72,7 @@ input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--bd);bo
 @keyframes lidopen{0%,12%{transform:translateZ(-48px) rotateX(0)}45%,68%{transform:translateZ(-48px) rotateX(115deg)}95%,100%{transform:translateZ(-48px) rotateX(0)}}
 .sh{position:absolute;bottom:14px;width:120px;height:18px;border-radius:50%;background:#0000004d;filter:blur(8px)}
 .pop{position:absolute;left:50%;top:44%;font-size:38px;opacity:0;pointer-events:none;z-index:3;animation:pawpop 9s ease-in-out infinite}
-@keyframes pawpop{0%,25%{opacity:0;transform:translate(-50%,10px) scale(.3)}48%{opacity:1;transform:translate(-50%,-58px) scale(1.15) rotate(-10deg)}68%{opacity:1;transform:translate(-50%,-48px) scale(1) rotate(8deg)}85%,100%{opacity:0;transform:translate(-50%,10px) scale(.3)}}
+@keyframes pawpop{0%,25%{opacity:0;transform:translate(-50%,10px) scale(.3)}48%{opacity:1;transform:translate(-50%,-84px) scale(1.15) rotate(-6deg)}68%{opacity:1;transform:translate(-50%,-74px) scale(1) rotate(5deg)}85%,100%{opacity:0;transform:translate(-50%,10px) scale(.3)}}
 .scene .tilt{transform:rotateX(-24deg) translateY(16px) scale(1.25)}
 .pk{will-change:transform}
 .pk .rt{filter:brightness(.82)}.pk .lf{filter:brightness(.9)}.pk .bk{filter:brightness(.75)}
@@ -88,7 +88,11 @@ input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--bd);bo
 .brand{font-size:46px;font-weight:900;letter-spacing:-1.6px;line-height:1;background:linear-gradient(180deg,#fff,#ffd9ee);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 14px #0004)}
 .tag2{display:inline-block;margin-top:14px;padding:6px 15px;border-radius:99px;background:#ffffff2e;border:1px solid #ffffff59;font-weight:700;font-size:13px;letter-spacing:.5px}
 @media(max-width:760px){.lgwrap{grid-template-columns:1fr;gap:6px;max-width:420px}.lgleft .scene{height:215px}.lgleft .scene .tilt{transform:rotateX(-24deg) translateY(22px) scale(1.4)}.brand{font-size:36px}.lgwrap .card{padding:20px 16px;border-radius:24px}}
-@media(prefers-reduced-motion:reduce){.pk,.pk .lw,.pop,.scene::before,.scene::after{animation:none}}
+.pop{display:flex;flex-direction:column;align-items:center;line-height:1;white-space:nowrap}
+.pop b{font-size:40px;font-weight:900;letter-spacing:2px;color:#fff;text-shadow:0 3px 12px #0006,0 0 22px #ff6bb5}
+.pop span{font-size:28px;margin-top:2px;filter:drop-shadow(0 3px 6px #0005)}
+@media(max-width:760px){.pop b{font-size:34px}.pop span{font-size:24px}}
+@media(prefers-reduced-motion:reduce){.pk,.pk .lw,.pop,.scene::before,.scene::after{animation:none}.pop{opacity:1;transform:translate(-50%,-60px)}}
 </style></head><body><div id="app"></div>
 <script>
 const SUPABASE_URL='https://rngylwfuhgmclexvfqiy.supabase.co', SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuZ3lsd2Z1aGdtY2xleHZmcWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MzUwMTUsImV4cCI6MjEwNjIxMTAxNX0.LbYlRCXCvPQOtwiid27ZNDs8eXVKSWvv8OOR1oBMPPk';
@@ -119,7 +123,7 @@ function loginV(reg){return`<div class="login g">${Array.from({length:7},()=>`<s
 ${reg?'<label>Seu nome</label><input id="n"><label>WhatsApp (com DDD)</label><input id="tel" type="tel" placeholder="11999999999">':''}<label>E-mail</label><input id="e" type="email"><label>Senha</label><input id="p" type="password" onkeydown="if(event.key=='Enter')this.closest('.card').querySelector('.btn.p').click()">
 <button class="btn p" style="width:100%" onclick="${reg?'signup()':'login()'}">${reg?'Cadastrar':'Entrar'}</button>
 <p style="text-align:center"><a href="#" onclick="$('#app').innerHTML=loginV(${!reg});return false" style="color:var(--ac)">${reg?'Já tenho conta':'Quero ser revendedor'}</a></p><p style="text-align:center;margin:14px 0 0;font-size:12px" class="mu">Feito por <b>João Miguel</b></p></div></div></div>`}
-const pk3d=()=>`<div class="scene" aria-hidden="true"><div class="sh"></div><div class="tilt"><div class="pk"><div class="f fr"></div><div class="f bk"></div><div class="f rt"></div><div class="f lf"></div><div class="bt"></div><div class="lw"><div class="lid"></div></div></div></div><div class="pop">🐾</div></div>`;
+const pk3d=()=>`<div class="scene" aria-hidden="true"><div class="sh"></div><div class="tilt"><div class="pk"><div class="f fr"></div><div class="f bk"></div><div class="f rt"></div><div class="f lf"></div><div class="bt"></div><div class="lw"><div class="lid"></div></div></div></div><div class="pop"><b>GV</b><span>🐾</span></div></div>`;
 let tries=0,lockUntil=0;
 async function login(){if(Date.now()<lockUntil)return alert('Muitas tentativas. Aguarde '+Math.ceil((lockUntil-Date.now())/1000)+'s.');const b=$('.login .btn.p'),h=b.innerHTML;b.disabled=true;b.innerHTML='<span class="spin"></span>Entrando...';
  const{data,error}=await sb.auth.signInWithPassword({email:$('#e').value.trim().toLowerCase(),password:$('#p').value});
