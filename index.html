@@ -57,13 +57,38 @@ input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--bd);bo
 @media(max-width:380px){.stats{grid-template-columns:1fr 1fr}.stat{font-size:12px}.stat b{font-size:19px}header .mu{display:none}}
 .logo-preview{width:100%;height:90px;border:1px dashed var(--bd);border-radius:12px;display:grid;place-items:center;background:var(--bg);overflow:hidden;margin:6px 0 10px}
 .logo-preview img{max-width:90%;max-height:80px;object-fit:contain}
+.scene{height:200px;display:grid;place-items:center;perspective:850px;position:relative;margin:-6px 0 2px}
+.tilt{transform-style:preserve-3d;transform:rotateX(-24deg) translateY(14px)}
+.pk{position:relative;width:96px;height:72px;transform-style:preserve-3d;animation:pkspin 18s linear infinite}
+@keyframes pkspin{to{transform:rotateY(360deg)}}
+.pk>div{position:absolute}
+.pk .f{left:0;top:0;width:96px;height:72px;background:linear-gradient(180deg,#e0b070,#b9803f);border:1px solid #8a5a26;box-shadow:inset 0 0 18px #0003}
+.pk .f::after{content:'';position:absolute;left:41px;top:0;width:14px;height:100%;background:#ffffff59}
+.pk .fr{transform:translateZ(48px)}.pk .bk{transform:rotateY(180deg) translateZ(48px)}.pk .rt{transform:rotateY(90deg) translateZ(48px)}.pk .lf{transform:rotateY(-90deg) translateZ(48px)}
+.pk .bt{left:0;top:24px;width:96px;height:96px;transform:rotateX(90deg);background:radial-gradient(circle,#ffd6ef,#c9894a 70%);border:1px solid #8a5a26}
+.pk .lw{left:0;top:0;width:96px;height:0;transform-style:preserve-3d;transform:translateZ(-48px);transform-origin:50% 0;animation:lidopen 9s ease-in-out infinite}
+.pk .lid{position:absolute;left:0;top:0;width:96px;height:96px;transform-origin:50% 0;transform:rotateX(90deg);background:linear-gradient(135deg,#e8b87a,#c28845);border:1px solid #8a5a26}
+.pk .lid::after{content:'';position:absolute;left:41px;top:0;width:14px;height:100%;background:#ffffff59}
+@keyframes lidopen{0%,12%{transform:translateZ(-48px) rotateX(0)}45%,68%{transform:translateZ(-48px) rotateX(115deg)}95%,100%{transform:translateZ(-48px) rotateX(0)}}
+.sh{position:absolute;bottom:14px;width:120px;height:18px;border-radius:50%;background:#0000004d;filter:blur(8px)}
+.pop{position:absolute;left:50%;top:44%;font-size:38px;opacity:0;pointer-events:none;z-index:3;animation:pawpop 9s ease-in-out infinite}
+@keyframes pawpop{0%,25%{opacity:0;transform:translate(-50%,10px) scale(.3)}48%{opacity:1;transform:translate(-50%,-58px) scale(1.15) rotate(-10deg)}68%{opacity:1;transform:translate(-50%,-48px) scale(1) rotate(8deg)}85%,100%{opacity:0;transform:translate(-50%,10px) scale(.3)}}
+.scene .tilt{transform:rotateX(-24deg) translateY(16px) scale(1.25)}
+.pk{will-change:transform}
+.pk .rt{filter:brightness(.82)}.pk .lf{filter:brightness(.9)}.pk .bk{filter:brightness(.75)}
+.pk .fr{background:linear-gradient(180deg,#eab97a,#c48a4a)}
+.scene::before,.scene::after{content:'✨';position:absolute;font-size:18px;opacity:.8;animation:tw 3s ease-in-out infinite}.scene::before{left:14%;top:22%}.scene::after{right:14%;top:34%;animation-delay:-1.5s}
+@keyframes tw{50%{opacity:.15;transform:scale(.6)}}
+.login .card{backdrop-filter:none!important;background:color-mix(in srgb,var(--card) 96%,transparent)!important}
+@media(max-width:600px){.scene{height:215px}.scene .tilt{transform:rotateX(-24deg) translateY(22px) scale(1.4)}.pop{font-size:42px}.login{padding:14px}.login .card{padding:18px 16px;border-radius:24px}}
+@media(prefers-reduced-motion:reduce){.pk,.pk .lw,.pop,.scene::before,.scene::after{animation:none}}
 </style></head><body><div id="app"></div>
 <script>
 const SUPABASE_URL='https://rngylwfuhgmclexvfqiy.supabase.co', SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuZ3lsd2Z1aGdtY2xleHZmcWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MzUwMTUsImV4cCI6MjEwNjIxMTAxNX0.LbYlRCXCvPQOtwiid27ZNDs8eXVKSWvv8OOR1oBMPPk';
 const $=s=>document.querySelector(s),R=n=>'R$ '+Number(n).toFixed(2).replace('.',','),E=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const okImg=u=>typeof u=='string'&&u.startsWith(SUPABASE_URL+'/storage/')?u:'';
-let me=null,P=[],U=[],O=[],cart=[],cat='Todos',q='',atab='dash',pfile=null,oemail='',ost='todos';
+let me=null,P=[],U=[],O=[],CR=[],cart=[],cat='Todos',q='',atab='dash',pfile=null,oemail='',ost='todos';
 const ORDER_LABEL_TAG='__ORDER_LABELS__';let labelEnabled=false;
 const isAdmin=()=>!!(me&&me.role=='admin');
 const err=e=>{if(e){alert(e.message);return true}};
@@ -71,6 +96,7 @@ const dt=s=>new Date(s).toLocaleDateString('pt-BR');
 async function load(){await loadAviso();
  let r=await sb.from('products').select('*').order('id');P=r.data||[];
  r=await sb.from('orders').select('*').order('id',{ascending:false});O=r.data||[];
+ r=await sb.from('creditos').select('*').order('id',{ascending:false});CR=r.data||[];
  if(me.role=='admin'){r=await sb.from('profiles').select('*').in('role',['rev','prod','owner']).order('name');U=r.data||[];r=await sb.from('rev_meta').select('*');M={};(r.data||[]).forEach(x=>M[x.rev_id]={tags:x.tags||[],note:x.note||''})}else if(me.role=='rev'){const z=await sb.from('rev_meta').select('tags').eq('rev_id',me.id).maybeSingle();labelEnabled=!!(z.data?.tags||[]).includes(ORDER_LABEL_TAG)}await loadMsgs()}
 async function boot(){
  if(SUPABASE_URL.startsWith('COLE'))return $('#app').innerHTML='<div class="wrap"><div class="card"><h2>Configure o Supabase</h2><p>Edite o index.html e cole a URL e a anon key no topo do script.</p></div></div>';
@@ -82,10 +108,11 @@ async function enter(id,silent){
  if(!data||data.status!='active'){if(!silent||data)alert(!data?'Acesso removido.':data.status=='pending'?'Cadastro aguardando aprovação do admin.':'Acesso bloqueado.');await sb.auth.signOut();me=null;return go()}
  me=data;labelEnabled=false;await load();go();rt();if(!silent)splash(data.name)}
 function go(){if(AV?.manut&&!(me?me.role=='admin':avAdm)){$('#app').innerHTML=manutV();document.querySelectorAll('.aviso-bar').forEach(e=>e.remove());return}$('#app').innerHTML=!me?loginV():me.role=='admin'?adminV():me.role=='prod'?prodV():me.role=='owner'?ownerV():resV();drawAviso()}
-function loginV(reg){return`<div class="login g">${Array.from({length:14},()=>`<span class="pw" style="left:${Math.random()*100}%;animation-duration:${6+Math.random()*8}s;animation-delay:-${Math.random()*10}s;font-size:${18+Math.random()*26}px">🐾</span>`).join('')}<div class="card"><h2><span class="bob">🐾</span> Portal do Revendedor</h2><p class="mu">${reg?'Crie sua conta. O admin precisa aprovar.':'Entre com seu e-mail.'}</p>
+function loginV(reg){return`<div class="login g">${Array.from({length:7},()=>`<span class="pw" style="left:${Math.random()*100}%;animation-duration:${6+Math.random()*8}s;animation-delay:-${Math.random()*10}s;font-size:${18+Math.random()*26}px">🐾</span>`).join('')}<div class="card">${pk3d()}<h2 style="text-align:center"><span class="bob">🐾</span> Portal do Revendedor</h2><p class="mu">${reg?'Crie sua conta. O admin precisa aprovar.':'Entre com seu e-mail.'}</p>
 ${reg?'<label>Seu nome</label><input id="n"><label>WhatsApp (com DDD)</label><input id="tel" type="tel" placeholder="11999999999">':''}<label>E-mail</label><input id="e" type="email"><label>Senha</label><input id="p" type="password" onkeydown="if(event.key=='Enter')this.closest('.card').querySelector('.btn.p').click()">
 <button class="btn p" style="width:100%" onclick="${reg?'signup()':'login()'}">${reg?'Cadastrar':'Entrar'}</button>
 <p style="text-align:center"><a href="#" onclick="$('#app').innerHTML=loginV(${!reg});return false" style="color:var(--ac)">${reg?'Já tenho conta':'Quero ser revendedor'}</a></p><p style="text-align:center;margin:14px 0 0;font-size:12px" class="mu">Feito por <b>João Miguel</b></p></div></div>`}
+const pk3d=()=>`<div class="scene" aria-hidden="true"><div class="sh"></div><div class="tilt"><div class="pk"><div class="f fr"></div><div class="f bk"></div><div class="f rt"></div><div class="f lf"></div><div class="bt"></div><div class="lw"><div class="lid"></div></div></div></div><div class="pop">🐾</div></div>`;
 let tries=0,lockUntil=0;
 async function login(){if(Date.now()<lockUntil)return alert('Muitas tentativas. Aguarde '+Math.ceil((lockUntil-Date.now())/1000)+'s.');const b=$('.login .btn.p'),h=b.innerHTML;b.disabled=true;b.innerHTML='<span class="spin"></span>Entrando...';
  const{data,error}=await sb.auth.signInWithPassword({email:$('#e').value.trim().toLowerCase(),password:$('#p').value});
@@ -99,7 +126,7 @@ async function signup(){const tel=$('#tel').value.replace(/\D/g,''),n=$('#n').va
  const{error}=await sb.auth.signUp({email:e,password:p,options:{data:{name:n,phone:tel}}});if(err(error))return;
  await sb.auth.signOut();alert('Cadastro enviado! Aguarde aprovação.');$('#app').innerHTML=loginV()}
 async function out(){document.querySelectorAll('.modal,.splash').forEach(e=>e.remove());if(chan){sb.removeChannel(chan);chan=null}await sb.auth.signOut();me=null;cart=[];chatRev=null;labelEnabled=false;go()}
-const hdr=t=>`<header><span class="g" style="border-radius:10px;padding:5px 8px">🐾</span><b>${t}</b><span class="mu" style="font-size:12px">${E(me.name)}</span>${me.role=='rev'?`<button class="btn s" onclick="chatR()">💬${unR()?` <span class="dot">${unR()}</span>`:''}</button>`:''}${me.role=='rev'?'<button class="btn s" onclick="accountV()">⚙️ Conta</button>':''}<button class="btn s" onclick="out()">Sair</button></header>`;
+const hdr=t=>`<header><span class="g" style="border-radius:10px;padding:5px 8px">🐾</span><b>${t}</b><span class="mu" style="font-size:12px">${E(me.name)}</span>${me.role=='rev'?`<button class="btn s" onclick="chatR()">💬${unR()?` <span class="dot">${unR()}</span>`:''}</button>`:''}${me.role=='rev'?`<span class="tag ok" style="font-weight:700">💳 ${R(saldo(me.id))}</span>`:''}${me.role=='rev'?'<button class="btn s" onclick="accountV()">⚙️ Conta</button>':''}<button class="btn s" onclick="out()">Sair</button></header>`;
 function accountV(){
  const m=document.createElement('div');m.className='modal';
  m.innerHTML=`<div><h2>⚙️ Minha conta</h2><label>Nome/apelido</label><input id="acname" value="${E(me.name||'')}"><label>E-mail</label><input id="acemail" type="email" value="${E(me.email||'')}"><label>WhatsApp (com DDD)</label><input id="acphone" type="tel" value="${E(me.phone||'')}"><button class="btn p" style="width:100%" id="acsave">Salvar dados</button><button class="btn" style="width:100%;margin-top:8px" id="acclose">Fechar</button></div>`;
@@ -190,11 +217,11 @@ async function deletePeriodSales(){
  await refresh();alert(`${count} venda(s) apagada(s).`);
 }
 async function refresh(){await load();go()}
-function adminV(){const tot=O.reduce((a,o)=>a+Number(o.total),0),T=[['dash','📊 Painel'],['prod','📦 Produtos'],['rev','👥 Revendedores'],['ped','🧾 Pedidos'],['clientes','👥 Clientes finais'],['chat','💬 Chat'+(unA()?' 🔴'+unA():'')],['config','⚙️ Configurações'],['avisos','📣 Avisos']];let b='';
+function adminV(){const tot=O.reduce((a,o)=>a+Number(o.total),0),T=[['dash','📊 Painel'],['prod','📦 Produtos'],['rev','👥 Revendedores'],['ped','🧾 Pedidos'],['clientes','👥 Clientes finais'],['chat','💬 Chat'+(unA()?' 🔴'+unA():'')],['ordem','📋 Ordem de pedido'],['cred','💳 Créditos'],['config','⚙️ Configurações'],['avisos','📣 Avisos']];let b='';
  if(atab=='dash')b=`<div class="stats"><div class="stat g"><b>${P.length}</b>Produtos</div><div class="stat" style="background:#0ea5e9"><b>${U.filter(u=>u.role=='rev'&&u.status=='active').length}</b>Revendedores</div><div class="stat" style="background:#f59e0b"><b>${U.filter(u=>u.status=='pending').length}</b>Pendentes</div></div>`+dashV();
  if(atab=='prod')b=`<button class="btn p" onclick="pedit()">+ Novo produto</button> <button class="btn" onclick="autoSku()">🔖 Gerar SKUs vazios</button><div class="grid" style="margin-top:12px">${P.map(p=>`<div class="card"><div class="img" style="${p.img?`background-image:url(${E(p.img)})`:''}">${p.img?'':E(p.emo)}</div><b>${E(p.name)}</b> <span class="tag">${E(p.cat)}</span><div class="mu" style="font-size:13px;margin:6px 0">${p.vars.map(v=>E(v.n)+' '+R(v.p)).join(' · ')}</div><button class="btn s" onclick="pedit(${p.id})">Editar</button> <button class="btn s d" onclick="pdel(${p.id})">Excluir</button></div>`).join('')}</div>`;
  if(atab=='rev')b=`${labelPanel()}<div class="card"><h2>Revendedores</h2><button class="btn s" onclick="upass('${me.id}')">🔑 Alterar minha senha</button>${U.map(u=>`<div class="row"><div><b>${E(u.name)}</b>${u.role=='prod'?' <span class="tag">🏭 Produção</span>':''}${u.role=='owner'?' <span class="tag">👑 Dono</span>':''}<br><span class="mu">${E(u.email)}</span></div><div><span class="tag ${u.status=='active'?'ok':'w'}">${u.status=='active'?'Ativo':u.status=='pending'?'Pendente':'Bloqueado'}</span> ${u.status!='active'?`<button class="btn s p" onclick="ust('${u.id}','active')">Aprovar</button>`:`<button class="btn s" onclick="ust('${u.id}','blocked')">Bloquear</button>`} <select onchange="urole('${u.id}',this.value)" style="width:auto;margin:0;padding:6px"><option value="rev" ${u.role=='rev'?'selected':''}>Revendedor</option><option value="prod" ${u.role=='prod'?'selected':''}>Produção</option><option value="owner" ${u.role=='owner'?'selected':''}>👑 Dono</option></select> <label class="tag" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" ${labelsOnFor(u.id)?'checked':''} onchange="toggleLabels('${u.id}',this.checked)" style="width:17px;height:17px;margin:0">🏷 Etiquetas no pedido</label> <button class="btn s" onclick="editProfile('${u.id}')">✏️ Dados</button> <button class="btn s" onclick="upass('${u.id}')">🔑 Senha</button> <button class="btn s d" onclick="udel('${u.id}')">Remover</button></div></div>`).join('')||'<p class="mu">Nenhum revendedor ainda.</p>'}</div>`;
- if(atab=='ped')b=ordersV(true);if(atab=='clientes')b=customerReportV(true);if(atab=='chat')b=chatAdminV();if(atab=='config')b=configV();if(atab=='avisos')b=avisosV();
+ if(atab=='ped')b=ordersV(true);if(atab=='clientes')b=customerReportV(true);if(atab=='chat')b=chatAdminV();if(atab=='config')b=configV();if(atab=='avisos')b=avisosV();if(atab=='ordem')b=ordemV();if(atab=='cred')b=creditosV();
  return hdr('Admin')+`<div class="wrap"><div class="tabs">${T.map(t=>`<button class="tab ${atab==t[0]?'on':''}" onclick="atab='${t[0]}';go()">${t[1]}</button>`).join('')}</div>${b}</div>`}
 async function refresh(){await load();go()}
 async function ust(id,s){if(err((await sb.from('profiles').update({status:s}).eq('id',id)).error))return;refresh()}
@@ -226,7 +253,7 @@ async function setEst(id,k,v){const r=await sb.rpc('set_item_estoque',{p_order:i
 const stTag=s=>`<span class="tag ${s=='concluido'?'ok':s=='producao'?'w':'b'}">${ST[s]||ST.novo}</span>`;
 function finalCustomer(note){const m=String(note||'').match(/\[\[CF:([^\]]*)\]\]/);if(!m)return null;try{return JSON.parse(decodeURIComponent(m[1]))}catch(e){return null}}
 function cleanNote(note){return String(note||'').replace(/\n?\[\[CF:[^\]]*\]\]/g,'').trim()}
-function noteBox(o){const n=cleanNote(o.note);return n?`<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:#f59e0b22;font-size:13px">📝 <b>Observação:</b> ${E(n)}</div>`:''}
+function noteBox(o){const n=cleanNote(o.note);return (n?`<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:#f59e0b22;font-size:13px">📝 <b>Observação:</b> ${E(n)}</div>`:'')+(Number(o.credito_usado)>0?`<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:#16a34a22;font-size:13px">💳 <b>Crédito usado:</b> ${R(o.credito_usado)}</div>`:'')}
 let MSG=[],M={},chatRev=null,cq='',cf='',TG=[],chan=null,lastSig='';
 const QR=['Olá! Como posso ajudar? 😊','Seu pedido entrou em produção 🔧','Seu pedido está pronto: pode vir buscar! 📦','Vou verificar e já te retorno.','Nossa chave Pix é: '],TS=['VIP','Novo','Devendo','Atacado','Atenção','Pagou'];
 const tc=t=>{let h=0;for(const c of t)h=(h*31+c.charCodeAt(0))%360;return `background:hsl(${h} 80% 50%/.2);color:hsl(${h} 75% 55%)`};
@@ -286,7 +313,7 @@ const slug=t=>String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperC
 const skuOf=(v,c)=>(v&&((v.skus&&v.skus[c])||(v.sku?v.sku+'-'+slug(c):'')))||'';
 const td=()=>new Date().toLocaleDateString('sv-SE');
 const pad=n=>String(n).padStart(2,'0'),iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),day=o=>iso(new Date(o.created_at)),addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x},pd=s=>new Date(s+'T00:00:00');
-const F={dash:{per:'mes',a:'',b:''},ped:{per:'tudo',a:'',b:''}},PER={hoje:'Hoje',ontem:'Ontem','7d':'7 dias',mes:'Este mês',mpas:'Mês passado',tudo:'Tudo'};let otab='dash';
+const F={dash:{per:'mes',a:'',b:''},ped:{per:'tudo',a:'',b:''},ord:{per:'hoje',a:'',b:''}},PER={hoje:'Hoje',ontem:'Ontem','7d':'7 dias',mes:'Este mês',mpas:'Mês passado',tudo:'Tudo'};let otab='dash';
 function rng(k){const f=F[k],t=new Date(),y=t.getFullYear(),m=t.getMonth();switch(f.per){case'hoje':return[iso(t),iso(t)];case'ontem':{const d=iso(addD(t,-1));return[d,d]}case'7d':return[iso(addD(t,-6)),iso(t)];case'mes':return[iso(new Date(y,m,1)),iso(t)];case'mpas':return[iso(new Date(y,m-1,1)),iso(new Date(y,m,0))];case'tudo':return['',''];}let a=f.a,b=f.b;if(a&&b&&a>b)[a,b]=[b,a];return[a,b]}
 const inR=(k,l=O,r=rng(k))=>l.filter(o=>{const d=day(o);return(!r[0]||d>=r[0])&&(!r[1]||d<=r[1])});
 function fset(k,p){F[k].per=p;go()}
@@ -315,7 +342,33 @@ function dashV(){const k='dash',r=rng(k),l=inR(k),pr=prevOf(k),pl=pr?inR(k,O,pr)
 <div class="card" style="margin-bottom:12px"><b>📈 Faturamento por dia</b>${dayChart(l,r)}</div>
 <div class="card" style="margin-bottom:12px"><b>🏆 Quem mais vendeu no período</b>${hbars(rank(l),x=>x.n+' ('+x.c+' ped.)',x=>x.t,x=>R(x.t))}</div>
 <div class="grid"><div class="card"><b>🔥 Produtos mais vendidos</b>${hbars(topBy(l,i=>i.name).slice(0,8),x=>x.n+' · '+x.q+' un.',x=>x.t,x=>R(x.t))}</div><div class="card"><b>🗂 Por categoria</b>${hbars(topBy(l,i=>(P.find(p=>p.id==i.id)||{}).cat||'Outros'),x=>x.n+' · '+x.q+' un.',x=>x.t,x=>R(x.t))}</div><div class="card"><b>📦 Status dos pedidos</b>${hbars(['novo','producao','concluido'].map(s=>({n:ST[s],t:l.filter(o=>o.status==s).length})),x=>x.n,x=>x.t,x=>x.t)}</div></div>${forecastV()}`}
-function ownerV(){return hdr('Dono 👑')+`<div class="wrap"><div class="tabs"><button class="tab ${otab=='dash'?'on':''}" onclick="otab='dash';go()">📊 Painel</button><button class="tab ${otab=='ped'?'on':''}" onclick="otab='ped';go()">🧾 Pedidos</button></div>${otab=='dash'?dashV():ordersV(false,true)}</div>`}
+/* ---------- CRÉDITOS ---------- */
+const saldo=id=>CR.filter(c=>c.user_id==id).reduce((a,c)=>a+Number(c.valor),0);
+function creditosV(){const rs=U.filter(u=>u.role=='rev');
+ return `<div class="card"><h2 style="margin-top:0">💳 Créditos dos revendedores</h2><p class="mu">Só o administrador lança créditos. O revendedor usa o saldo para abater o valor de um pedido.</p>${rs.map(u=>`<div class="row"><div><b>${E(u.name)}</b><br><span class="mu" style="font-size:12px">${E(u.email)}</span></div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><b class="price" style="font-size:17px">${R(saldo(u.id))}</b><button class="btn s p" onclick="credModal('${u.id}',1)">+ Dar</button><button class="btn s" onclick="credModal('${u.id}',-1)">− Remover</button><button class="btn s" onclick="credHist('${u.id}')">🕒 Extrato</button></div></div>`).join('')||'<p class="mu">Nenhum revendedor ainda.</p>'}</div>`}
+function credModal(id,sg){if(!isAdmin())return;const u=U.find(x=>x.id==id);if(!u)return;const m=document.createElement('div');m.className='modal';
+ m.innerHTML=`<div><h2>${sg>0?'➕ Dar crédito':'➖ Remover crédito'}</h2><p class="mu">${E(u.name)} · saldo atual ${R(saldo(id))}</p><label>Valor (R$)</label><input id="cv" type="number" min="0.01" step="0.01" placeholder="Ex.: 50,00"><label>Motivo (opcional)</label><input id="cm" maxlength="120" placeholder="Ex.: troca, bônus, devolução"><button class="btn ${sg>0?'p':'d'}" style="width:100%" id="cs">${sg>0?'Dar crédito':'Remover crédito'}</button><button class="btn" style="width:100%;margin-top:8px" id="cc">Cancelar</button></div>`;
+ document.body.appendChild(m);m.querySelector('#cc').onclick=()=>m.remove();
+ m.querySelector('#cs').onclick=async()=>{const v=Math.round((parseFloat(m.querySelector('#cv').value)||0)*100)/100;if(v<=0)return alert('Informe um valor maior que zero.');
+  const r=await sb.rpc('dar_credito',{p_user:id,p_valor:sg*v,p_motivo:m.querySelector('#cm').value.trim()||null});if(err(r.error))return;m.remove();await refresh();alert('Crédito atualizado! ✅')}}
+function credHist(id){const u=U.find(x=>x.id==id);if(!u)return;const m=document.createElement('div');m.className='modal';
+ m.innerHTML=`<div><h2>🕒 Extrato de créditos</h2><p class="mu">${E(u.name)} · saldo ${R(saldo(id))}</p>${CR.filter(c=>c.user_id==id).map(c=>`<div class="row"><div><b style="color:${Number(c.valor)>=0?'var(--ok)':'var(--rd)'}">${Number(c.valor)>=0?'+':'−'} ${R(Math.abs(c.valor))}</b><br><span class="mu" style="font-size:12px">${E(c.motivo||'—')} · por ${E(c.criado_por_nome||'—')}</span></div><span class="mu" style="font-size:12px">${new Date(c.created_at).toLocaleString('pt-BR')}</span></div>`).join('')||'<p class="mu">Nenhum lançamento.</p>'}<button class="btn" style="width:100%;margin-top:10px" id="hc">Fechar</button></div>`;
+ document.body.appendChild(m);m.querySelector('#hc').onclick=()=>m.remove()}
+/* ---------- ORDEM DE PEDIDO (soma por SKU) ---------- */
+let ordn='',ordg='dia';
+function ordemRows(){const l=inR('ord').filter(o=>((o.who||'')+' '+(o.email||'')).toLowerCase().includes(ordn.trim().toLowerCase())),m={};
+ l.forEach(o=>(o.items||[]).forEach(i=>{const pr=P.find(p=>p.id==i.id),sku=i.sku||skuOf(pr&&pr.vars.find(v=>v.n==i.v),i.c)||[i.name,i.v,i.c].filter(Boolean).join(' '),d=ordg=='dia'?day(o):'',k=d+'|'+sku,x=m[k]||(m[k]={d,sku,name:i.name||'',opt:[i.v,i.c].filter(Boolean).join(' / '),q:0,t:0,ped:new Set()});
+  x.q+=Number(i.q)||0;x.t+=(Number(i.p)||0)*(Number(i.q)||0);x.ped.add(o.id)}));
+ return Object.values(m).sort((a,b)=>b.d.localeCompare(a.d)||String(a.sku).localeCompare(String(b.sku),'pt-BR'))}
+function ordemV(){const r=ordemRows(),tq=r.reduce((a,x)=>a+x.q,0),tv=r.reduce((a,x)=>a+x.t,0);
+ return `${fbar('ord')}<div class="card" style="margin-bottom:12px"><b>📋 Ordem de pedido</b><p class="mu" style="margin:6px 0">Soma a quantidade de cada SKU. Pedidos do mesmo dia com o mesmo produto viram uma linha só.</p><input id="ordn" placeholder="🔍 Filtrar por nome do revendedor..." value="${E(ordn)}" oninput="ordn=this.value;rl(this)"><div class="tabs" style="margin:0 0 8px"><button class="tab ${ordg=='dia'?'on':''}" onclick="ordg='dia';go()">📅 Por dia + SKU</button><button class="tab ${ordg=='sku'?'on':''}" onclick="ordg='sku';go()">🔖 Só por SKU (período todo)</button></div><button class="btn p" onclick="xlOrdem()">⬇️ Baixar Excel</button></div>
+<div class="stats"><div class="stat g"><b>${r.length}</b>Linhas</div><div class="stat" style="background:#f59e0b"><b>${tq}</b>Quantidade total</div><div class="stat" style="background:#16a34a"><b>${R(tv)}</b>Valor total</div></div>
+<div class="card"><div class="report-wrap"><table><thead><tr>${ordg=='dia'?'<th>Data</th>':''}<th>SKU</th><th>Produto</th><th>Qtd.</th><th>Valor</th><th>Pedidos</th></tr></thead><tbody>${r.map(x=>`<tr>${ordg=='dia'?`<td>${dt(x.d+'T12:00:00')}</td>`:''}<td><b>${E(x.sku)}</b></td><td>${E(x.name)}${x.opt?`<br><span class="mu">${E(x.opt)}</span>`:''}</td><td><b>${x.q}</b></td><td>${R(x.t)}</td><td class="mu">${[...x.ped].map(n=>'#'+n).join(', ')}</td></tr>`).join('')||`<tr><td colspan="${ordg=='dia'?6:5}">Nenhum pedido nesse período.</td></tr>`}</tbody></table></div></div>`}
+function xlOrdem(){if(typeof XLSX=='undefined')return alert('Biblioteca do Excel não carregou. Recarregue a página.');const r=ordemRows();if(!r.length)return alert('Nada nesse período.');
+ const rows=r.map(x=>({'Data':x.d?dt(x.d+'T12:00:00'):'Período todo','SKU':x.sku,'Produto':x.name,'Opção / cor':x.opt,'Quantidade':x.q,'Valor total':Math.round(x.t*100)/100,'Pedidos':[...x.ped].map(n=>'#'+n).join(', ')}));
+ rows.push({'SKU':'TOTAL','Quantidade':r.reduce((a,x)=>a+x.q,0),'Valor total':Math.round(r.reduce((a,x)=>a+x.t,0)*100)/100});
+ const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Ordem de pedido');XLSX.writeFile(wb,'ordem_pedido.xlsx')}
+function ownerV(){return hdr('Dono 👑')+`<div class="wrap"><div class="tabs"><button class="tab ${otab=='dash'?'on':''}" onclick="otab='dash';go()">📊 Painel</button><button class="tab ${otab=='ped'?'on':''}" onclick="otab='ped';go()">🧾 Pedidos</button><button class="tab ${otab=='ordem'?'on':''}" onclick="otab='ordem';go()">📋 Ordem de pedido</button></div>${otab=='dash'?dashV():otab=='ordem'?ordemV():ordersV(false,true)}</div>`}
 function upass(id){const u=id==me.id?me:U.find(x=>x.id==id),m=document.createElement('div');m.className='modal';
  m.innerHTML=`<div><h2>🔑 Nova senha</h2><p class="mu">${id==me.id?'Sua conta':E(u.name)+' · '+E(u.email)}</p><label>Nova senha (mín. 6 caracteres)</label><input id="np" type="text" autocomplete="off"><button class="btn s" id="ng">🎲 Gerar senha</button><button class="btn p" style="width:100%;margin-top:12px" id="ns">Salvar senha</button><button class="btn" style="width:100%;margin-top:8px" id="nc">Cancelar</button></div>`;document.body.appendChild(m);
  m.querySelector('#nc').onclick=()=>m.remove();m.querySelector('#ng').onclick=()=>{m.querySelector('#np').value=Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>'abcdefghjkmnpqrstuvwxyz23456789'[b%31]).join('')};
@@ -502,11 +555,11 @@ ${d.items.map((i,k)=>`<div class="ord" style="padding:10px"><b>${E(i.name)}</b> 
 async function setSt(id,st){if(err((await sb.rpc('set_order_status',{pedido_id:id,novo_status:st})).error))return;refresh()}
 async function odel(id){if(confirm('Excluir este pedido?')){if(err((await sb.from('orders').delete().eq('id',id)).error))return;refresh()}}
 async function urole(id,r){if(err((await sb.from('profiles').update({role:r,status:'active'}).eq('id',id)).error))return;refresh()}
-function prodV(){return hdr('Produção')+`<div class="wrap"><div class="card g" style="color:#fff;margin-bottom:12px"><b style="font-size:18px">🏭 Área de Produção</b><br>Marque os pedidos como em produção ou pode vir buscar. <button class="btn s" onclick="refresh()">🔄 Atualizar</button></div>${ordersV(false)}</div>`}
+function prodV(){return hdr('Produção')+`<div class="wrap"><div class="card g" style="color:#fff;margin-bottom:12px"><b style="font-size:18px">🏭 Área de Produção</b><br>Marque os pedidos como em produção ou pode vir buscar. <button class="btn s" onclick="refresh()">🔄 Atualizar</button></div><div class="tabs"><button class="tab ${otab!='ordem'?'on':''}" onclick="otab='ped';go()">🧾 Pedidos</button><button class="tab ${otab=='ordem'?'on':''}" onclick="otab='ordem';go()">📋 Ordem de pedido</button></div>${otab=='ordem'?ordemV():ordersV(false)}</div>`}
 /* ---------- REVENDEDOR ---------- */
 function resV(){const cats=['Todos',...new Set(P.map(p=>p.cat))],list=P.filter(p=>(cat=='Todos'||p.cat==cat)&&p.name.toLowerCase().includes(q.toLowerCase()));
  const tot=cart.reduce((a,i)=>a+i.p*i.q,0),n=cart.reduce((a,i)=>a+i.q,0);
- return hdr('Preços de Revenda')+`<div class="wrap"><div class="card g" style="color:#fff;margin-bottom:12px"><b style="font-size:18px">Olá, ${E(me.name)} 👋</b><br>Escolha o produto, cor e quantidade. O total é calculado automaticamente.</div>${labelEnabled?'<div class="card" style="background:#ff6bb522;border-color:#ff6bb5;margin-bottom:12px"><b>🏷 Etiquetas ativadas</b><br><span class="mu">No carrinho, informe a etiqueta e selecione os produtos que devem sair juntos na mesma embalagem.</span></div>':''}${O.some(o=>o.status=='concluido')?`<div class="card" style="background:#16a34a;color:#fff;margin-bottom:12px"><b>🎉 ${O.filter(o=>o.status=='concluido').length} pedido(s) pronto(s): pode vir buscar!</b></div>`:''}
+ return hdr('Preços de Revenda')+`<div class="wrap"><div class="card g" style="color:#fff;margin-bottom:12px"><b style="font-size:18px">Olá, ${E(me.name)} 👋</b><br>Escolha o produto, cor e quantidade. O total é calculado automaticamente.</div>${saldo(me.id)>0?`<div class="card" style="background:#16a34a22;border-color:#16a34a;margin-bottom:12px"><b>💳 Você tem ${R(saldo(me.id))} em créditos</b><br><span class="mu">Use no carrinho para abater o valor do pedido.</span></div>`:''}${labelEnabled?'<div class="card" style="background:#ff6bb522;border-color:#ff6bb5;margin-bottom:12px"><b>🏷 Etiquetas ativadas</b><br><span class="mu">No carrinho, informe a etiqueta e selecione os produtos que devem sair juntos na mesma embalagem.</span></div>':''}${O.some(o=>o.status=='concluido')?`<div class="card" style="background:#16a34a;color:#fff;margin-bottom:12px"><b>🎉 ${O.filter(o=>o.status=='concluido').length} pedido(s) pronto(s): pode vir buscar!</b></div>`:''}
 ${customerReportV(false)}
 <input id="qs" placeholder="🔍 Buscar produto..." value="${E(q)}" oninput="q=this.value;rl(this)"><div class="tabs">${cats.map(c=>`<button class="tab ${cat==c?'on':''}" data-c="${E(c)}" onclick="cat=this.dataset.c;go()">${E(c)}</button>`).join('')}</div>
 <div class="grid">${list.map(p=>{const cs=p.colors.split(',').map(s=>s.trim()).filter(Boolean);return`<div class="card"><div class="img" style="${okImg(p.img)?`background-image:url('${E(okImg(p.img))}')`:''}">${okImg(p.img)?'':E(p.emo)}</div><b>${E(p.name)}</b>
@@ -528,7 +581,7 @@ async function lerEtiqueta(f){let txt='';
   if(!e)return '';txt=await e.async('string');
  }else if(/\.(txt|zpl|prn)$/i.test(f.name))txt=await f.text();else return '';
  return String(txt).replace(/\r\n/g,'\n').trim()}
-function cartV(){let nt='',pk='qualquer';const m=document.createElement('div');m.className='modal';
+function cartV(){let nt='',pk='qualquer',uc=false;const m=document.createElement('div');m.className='modal';
  const draw=()=>{const t=cart.reduce((a,i)=>a+i.p*i.q,0);m.innerHTML=`<div><h2>🛒 Seu pedido</h2><label>Nome do revendedor</label><input id="rn" value="${E(me.name)}"><label>WhatsApp (avisamos quando estiver pronto)</label><input id="rt" type="tel" value="${E(me.phone||(()=>{try{return localStorage.getItem('rvphone')||''}catch(e){return ''}})())}">
 ${cart.map((i,k)=>`<div class="row" style="display:block"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div><b>${E(i.name)}</b><br><span class="mu">${E(i.v)} · ${E(i.c)} · ${R(i.p)}</span></div><div>${i.q}x <b>${R(i.p*i.q)}</b> <button class="btn s d" data-k="${k}">✕</button></div></div>${labelEnabled?`<div style="margin-top:8px;padding:10px;border-radius:12px;background:#ff6bb511;border:1px solid #ff6bb544"><label>🏷 Etiqueta da embalagem</label><input data-label="${k}" value="${E(i.etiqueta||'')}" placeholder="Ex.: KIT MARROM" style="margin:3px 0 7px"><label>📎 Arquivo da etiqueta (qualquer tipo)</label><input type="file" data-file="${k}" style="margin:3px 0 7px">${i.arquivo?`<small class="mu">Anexado: ${E(i.arquivo.nome)}</small>${i.texto?' <small class="mu">· texto lido ✓</small>':''}`:''}<label>📦 Produto que vai junto</label><select data-pair="${k}" style="margin:3px 0 0"><option value="">Avulso, embalagem separada</option>${cart.map((x,j)=>j==k?'':`<option value="${j}" ${String(i.par)==String(j)?'selected':''}>${E(x.name)} · ${E(x.v)} · ${E(x.c)}</option>`).join('')}</select><small class="mu">Para a mesma embalagem, use a mesma etiqueta nos dois itens.</small></div>`:''}</div>`).join('')}
 <label style="display:block;margin-top:10px">🕒 Em qual parte do dia você vai buscar?</label><div class="tabs" style="margin:4px 0 0">${Object.keys(PKL).map(k=>`<button class="tab ${pk==k?'on':''}" data-pk="${k}">${PKL[k]}</button>`).join('')}</div>
@@ -536,18 +589,23 @@ ${cart.map((i,k)=>`<div class="row" style="display:block"><div style="display:fl
 <label>WhatsApp do cliente final (opcional)</label><input id="cfphone" type="tel" placeholder="DDD + número">
 <label>Valor da venda ao cliente final (opcional)</label><input id="cfvalue" type="number" min="0" step="0.01" placeholder="Ex.: 120,00">
 <label style="display:block;margin-top:10px">📝 Observação (opcional)</label><textarea id="rk" rows="3" placeholder="Ex.: bordar o nome do pet, cor especial, prazo..."></textarea>
-<div class="row"><b>Total</b><span class="price">${R(t)}</span></div><button class="btn p" style="width:100%" id="sd">Enviar pedido</button><button class="btn" style="width:100%;margin-top:8px" id="cl">Fechar</button></div>`;
+${saldo(me.id)>0?`<label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:14px;color:var(--tx)"><input type="checkbox" id="uc" ${uc?'checked':''} style="width:18px;height:18px;margin:0">💳 Usar meus créditos (saldo ${R(saldo(me.id))})</label>`:''}<div id="cinfo"></div><div class="row"><b>Total a pagar</b><span class="price" id="ctot">${R(t)}</span></div><button class="btn p" style="width:100%" id="sd">Enviar pedido</button><button class="btn" style="width:100%;margin-top:8px" id="cl">Fechar</button></div>`;
  m.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{cart.splice(Number(b.dataset.k),1);if(!cart.length){m.remove()}else draw();go()});
  m.querySelectorAll('[data-label]').forEach(b=>b.oninput=()=>{cart[Number(b.dataset.label)].etiqueta=b.value});
  m.querySelectorAll('[data-file]').forEach(b=>b.onchange=async()=>{const f=b.files[0];if(!f)return;const k=Number(b.dataset.file),safe=f.name.replace(/[^\w.\-]+/g,'_'),path=me.id+'/'+Date.now()+'_'+safe;const u=await sb.storage.from('pedidos').upload(path,f);if(err(u.error))return;cart[k].arquivo={nome:f.name,path};try{cart[k].texto=await lerEtiqueta(f)}catch(e){cart[k].texto=''}if(!cart[k].texto)alert('Não achei texto nesse arquivo. Ele foi anexado mesmo assim.');draw()});
  m.querySelectorAll('[data-pair]').forEach(b=>b.onchange=()=>{const k=Number(b.dataset.pair),j=b.value;cart[k].par=j;if(j!==''&&!cart[k].etiqueta)cart[k].etiqueta=cart[Number(j)].etiqueta||'CONJUNTO '+(k+1);draw()});
+ const upd=()=>{const c=uc?Math.min(saldo(me.id),t):0;m.querySelector('#cinfo').innerHTML=c?`<div class="row"><span>Créditos usados</span><b style="color:var(--ok)">− ${R(c)}</b></div>`:'';m.querySelector('#ctot').textContent=R(t-c)};
+ const ucb=m.querySelector('#uc');if(ucb)ucb.onchange=()=>{uc=ucb.checked;upd()};upd();
  m.querySelector('#cl').onclick=()=>m.remove();
  m.querySelectorAll('[data-pk]').forEach(b=>b.onclick=()=>{pk=b.dataset.pk;m.querySelectorAll('[data-pk]').forEach(x=>x.classList.toggle('on',x.dataset.pk==pk))});m.querySelector('#rk').value=nt;m.querySelector('#rk').oninput=e=>nt=e.target.value;
  m.querySelector('#sd').onclick=async()=>{const ph=$('#rt').value.replace(/\D/g,'');if(ph.length<10)return alert('Informe o WhatsApp com DDD para avisarmos quando estiver pronto');try{localStorage.setItem('rvphone',ph)}catch(e){}
  cart.forEach((i,k)=>{const j=Number(i.par);if(Number.isInteger(j)&&cart[j]){const lab=(i.etiqueta||cart[j].etiqueta||'CONJUNTO '+(k+1)).trim();i.etiqueta=lab;cart[j].etiqueta=lab;const af=i.arquivo||cart[j].arquivo;if(af){i.arquivo=af;cart[j].arquivo=af}const tx=i.texto||cart[j].texto;if(tx){i.texto=tx;cart[j].texto=tx}}});
  const items=cart.map(i=>({...i,conjunto:i.par!==''})),final={name:$('#cfname').value.trim(),phone:$('#cfphone').value.replace(/\D/g,''),value:Math.max(0,Number($('#cfvalue').value)||0)},hasFinal=final.name||final.phone||Number($('#cfvalue').value)>0;
  const note=[nt.trim(),hasFinal?'[[CF:'+encodeURIComponent(JSON.stringify(final))+']]':''].filter(Boolean).join('\n');
- const r=await sb.from('orders').insert({user_id:me.id,email:me.email,phone:ph,pickup:pk,note:note||null,who:$('#rn').value.trim()||me.name,items,total:t});if(err(r.error))return;cart=[];m.remove();alert('Pedido enviado ao admin! ✅');refresh()}};
+ const r=await sb.from('orders').insert({user_id:me.id,email:me.email,phone:ph,pickup:pk,note:note||null,who:$('#rn').value.trim()||me.name,items,total:t}).select('id').single();if(err(r.error))return;
+ let msg='Pedido enviado ao admin! ✅';const uso=uc?Math.min(saldo(me.id),t):0;
+ if(uso>0){const g=await sb.rpc('gastar_credito',{p_valor:uso,p_pedido:r.data.id});if(g.error)msg='Pedido enviado, mas não foi possível usar os créditos: '+g.error.message}
+ cart=[];m.remove();alert(msg);refresh()}};
  draw();document.body.appendChild(m)}
 setInterval(()=>{if(me&&!$('#msgs')&&!document.querySelector('.modal')&&!['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName))refresh()},30000);
 setInterval(async()=>{if(me&&(me.role=='admin'||me.role=='rev')&&$('#msgs')){await loadMsgs();drawMsgs();markRead(curConv())}},8000);
