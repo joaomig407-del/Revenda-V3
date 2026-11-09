@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'unsafe-inline'; img-src 'self' data: blob: https://rngylwfuhgmclexvfqiy.supabase.co; connect-src https://rngylwfuhgmclexvfqiy.supabase.co wss://rngylwfuhgmclexvfqiy.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <script>if(top!==self){document.documentElement.style.display='none';top.location=self.location}</script>
-<title>Portal do Revendedor</title>
+<title>Prime Seeler</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -81,6 +81,13 @@ input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--bd);bo
 @keyframes tw{50%{opacity:.15;transform:scale(.6)}}
 .login .card{backdrop-filter:none!important;background:color-mix(in srgb,var(--card) 96%,transparent)!important}
 @media(max-width:600px){.scene{height:215px}.scene .tilt{transform:rotateX(-24deg) translateY(22px) scale(1.4)}.pop{font-size:42px}.login{padding:14px}.login .card{padding:18px 16px;border-radius:24px}}
+.lgwrap{position:relative;z-index:1;width:100%;max-width:920px;display:grid;grid-template-columns:1.05fr 1fr;align-items:center;gap:30px}
+.lgwrap .card{max-width:none;padding:28px;border-radius:28px;box-shadow:0 30px 80px #0006,0 0 0 1px #ffffff40 inset}
+.lgleft{text-align:center;color:#fff}
+.lgleft .scene{height:270px}.lgleft .scene .tilt{transform:rotateX(-24deg) translateY(22px) scale(1.6)}
+.brand{font-size:46px;font-weight:900;letter-spacing:-1.6px;line-height:1;background:linear-gradient(180deg,#fff,#ffd9ee);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 14px #0004)}
+.tag2{display:inline-block;margin-top:14px;padding:6px 15px;border-radius:99px;background:#ffffff2e;border:1px solid #ffffff59;font-weight:700;font-size:13px;letter-spacing:.5px}
+@media(max-width:760px){.lgwrap{grid-template-columns:1fr;gap:6px;max-width:420px}.lgleft .scene{height:215px}.lgleft .scene .tilt{transform:rotateX(-24deg) translateY(22px) scale(1.4)}.brand{font-size:36px}.lgwrap .card{padding:20px 16px;border-radius:24px}}
 @media(prefers-reduced-motion:reduce){.pk,.pk .lw,.pop,.scene::before,.scene::after{animation:none}}
 </style></head><body><div id="app"></div>
 <script>
@@ -108,10 +115,10 @@ async function enter(id,silent){
  if(!data||data.status!='active'){if(!silent||data)alert(!data?'Acesso removido.':data.status=='pending'?'Cadastro aguardando aprovação do admin.':'Acesso bloqueado.');await sb.auth.signOut();me=null;return go()}
  me=data;labelEnabled=false;await load();go();rt();if(!silent)splash(data.name)}
 function go(){if(AV?.manut&&!(me?me.role=='admin':avAdm)){$('#app').innerHTML=manutV();document.querySelectorAll('.aviso-bar').forEach(e=>e.remove());return}$('#app').innerHTML=!me?loginV():me.role=='admin'?adminV():me.role=='prod'?prodV():me.role=='owner'?ownerV():resV();drawAviso()}
-function loginV(reg){return`<div class="login g">${Array.from({length:7},()=>`<span class="pw" style="left:${Math.random()*100}%;animation-duration:${6+Math.random()*8}s;animation-delay:-${Math.random()*10}s;font-size:${18+Math.random()*26}px">🐾</span>`).join('')}<div class="card">${pk3d()}<h2 style="text-align:center"><span class="bob">🐾</span> Portal do Revendedor</h2><p class="mu">${reg?'Crie sua conta. O admin precisa aprovar.':'Entre com seu e-mail.'}</p>
+function loginV(reg){return`<div class="login g">${Array.from({length:7},()=>`<span class="pw" style="left:${Math.random()*100}%;animation-duration:${6+Math.random()*8}s;animation-delay:-${Math.random()*10}s;font-size:${18+Math.random()*26}px">🐾</span>`).join('')}<div class="lgwrap"><div class="lgleft">${pk3d()}<div class="brand">Prime Seeler</div><div class="tag2">🐾 Revenda pet premium</div></div><div class="card"><h2 style="margin:0 0 4px">${reg?'Criar conta':'Bem-vindo de volta'}</h2><p class="mu" style="margin-top:0">${reg?'Crie sua conta. O admin precisa aprovar.':'Entre com seu e-mail.'}</p>
 ${reg?'<label>Seu nome</label><input id="n"><label>WhatsApp (com DDD)</label><input id="tel" type="tel" placeholder="11999999999">':''}<label>E-mail</label><input id="e" type="email"><label>Senha</label><input id="p" type="password" onkeydown="if(event.key=='Enter')this.closest('.card').querySelector('.btn.p').click()">
 <button class="btn p" style="width:100%" onclick="${reg?'signup()':'login()'}">${reg?'Cadastrar':'Entrar'}</button>
-<p style="text-align:center"><a href="#" onclick="$('#app').innerHTML=loginV(${!reg});return false" style="color:var(--ac)">${reg?'Já tenho conta':'Quero ser revendedor'}</a></p><p style="text-align:center;margin:14px 0 0;font-size:12px" class="mu">Feito por <b>João Miguel</b></p></div></div>`}
+<p style="text-align:center"><a href="#" onclick="$('#app').innerHTML=loginV(${!reg});return false" style="color:var(--ac)">${reg?'Já tenho conta':'Quero ser revendedor'}</a></p><p style="text-align:center;margin:14px 0 0;font-size:12px" class="mu">Feito por <b>João Miguel</b></p></div></div></div>`}
 const pk3d=()=>`<div class="scene" aria-hidden="true"><div class="sh"></div><div class="tilt"><div class="pk"><div class="f fr"></div><div class="f bk"></div><div class="f rt"></div><div class="f lf"></div><div class="bt"></div><div class="lw"><div class="lid"></div></div></div></div><div class="pop">🐾</div></div>`;
 let tries=0,lockUntil=0;
 async function login(){if(Date.now()<lockUntil)return alert('Muitas tentativas. Aguarde '+Math.ceil((lockUntil-Date.now())/1000)+'s.');const b=$('.login .btn.p'),h=b.innerHTML;b.disabled=true;b.innerHTML='<span class="spin"></span>Entrando...';
