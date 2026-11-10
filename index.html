@@ -112,6 +112,61 @@ input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--bd);bo
 .pk .bt{border:0;background:radial-gradient(circle,#8a6034,#4f3217 80%)}
 .sh{background:radial-gradient(ellipse,#0008,transparent 70%);filter:blur(4px)}
 @media(prefers-reduced-motion:reduce){.pk,.pk .lw,.pop,.scene::before,.scene::after{animation:none}.pop{opacity:1;transform:translate(-50%,-60px)}}
+/* ===== EFEITOS 3D / TRANSIÇÕES ===== */
+html{scroll-behavior:smooth}
+@keyframes rise{from{opacity:0;transform:perspective(900px) rotateX(-14deg) translateY(28px) scale(.96)}}
+@keyframes hdrin{from{opacity:0;transform:translateY(-100%)}}
+@keyframes sheet{from{opacity:0;transform:perspective(900px) rotateX(16deg) translateY(70px) scale(.97)}}
+@keyframes fadein{from{opacity:0}}
+@keyframes flipin{from{opacity:0;transform:perspective(900px) rotateY(-60deg) translateX(50px) scale(.92)}}
+@keyframes slidel{from{opacity:0;transform:translateX(-50px) scale(.94)}}
+@keyframes fl{50%{translate:0 -9px}}
+@keyframes shp{50%{scale:.82 .82;opacity:.65}}
+@keyframes orb{to{transform:translate3d(8vmax,6vmax,0) scale(1.15)}}
+@keyframes ln{to{background-position:200% 0}}
+#app.enter header{animation:hdrin .55s cubic-bezier(.2,.9,.3,1) backwards}
+#app.enter .wrap :is(.card,.stat,.ord){animation:rise .65s cubic-bezier(.2,.9,.3,1) backwards;transform-origin:50% 0}
+#app.enter .wrap :is(.card,.stat,.ord):nth-child(2){animation-delay:.06s}
+#app.enter .wrap :is(.card,.stat,.ord):nth-child(3){animation-delay:.12s}
+#app.enter .wrap :is(.card,.stat,.ord):nth-child(4){animation-delay:.18s}
+#app.enter .wrap :is(.card,.stat,.ord):nth-child(5){animation-delay:.24s}
+#app.enter .wrap :is(.card,.stat,.ord):nth-child(6){animation-delay:.3s}
+#app.enter .wrap :is(.card,.stat,.ord):nth-child(n+7){animation-delay:.36s}
+#app.enter .tab{animation:rise .5s cubic-bezier(.2,.9,.3,1) backwards}
+.modal{animation:fadein .25s ease-out}
+.modal>div{animation:sheet .5s cubic-bezier(.2,.9,.3,1) backwards;transform-origin:50% 100%}
+header{position:sticky}
+header::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--ac),var(--ac2),var(--ac));background-size:200% 100%;animation:ln 7s linear infinite;opacity:.75}
+.stat,.grid>.card{position:relative;transition:transform .22s ease-out,box-shadow .22s;will-change:transform}
+.stat::after,.grid>.card::after{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at var(--gx,50%) var(--gy,0%),#ffffff30,transparent 58%);opacity:0;transition:opacity .25s;pointer-events:none}
+.stat:hover::after,.grid>.card:hover::after{opacity:1}
+.stat:hover{box-shadow:0 22px 44px #20243d33}
+.img{overflow:hidden;transition:transform .5s cubic-bezier(.2,.9,.3,1)}.grid>.card:hover .img{transform:scale(1.04)}
+.tab{transition:transform .2s,box-shadow .2s,background .2s,color .2s,border-color .2s}.tab:hover{transform:translateY(-2px)}.tab.on{transform:translateY(-1px) scale(1.04)}
+.btn:active{transform:translateY(2px) scale(.97)}
+tbody tr{transition:background .15s}tbody tr:hover{background:color-mix(in srgb,var(--ac) 8%,transparent)}
+.ord{transform-style:preserve-3d}.ord:hover{transform:perspective(900px) translateY(-3px) rotateX(1.2deg)}
+/* login */
+.login.g::before,.login.g::after{content:'';position:absolute;width:60vmax;height:60vmax;border-radius:50%;pointer-events:none;animation:orb 16s ease-in-out infinite alternate}
+.login.g::before{left:-20vmax;top:-25vmax;background:radial-gradient(circle,#ffffff3d,transparent 65%)}
+.login.g::after{right:-25vmax;bottom:-30vmax;background:radial-gradient(circle,#ff9be038,transparent 65%);animation-delay:-8s}
+.lgwrap .card{animation:flipin .85s cubic-bezier(.2,.9,.3,1.08) backwards;transform-origin:30% 50%}
+.lgwrap .card>*{animation:rise .6s cubic-bezier(.2,.9,.3,1) backwards}
+.lgwrap .card>:nth-child(1){animation-delay:.35s}.lgwrap .card>:nth-child(2){animation-delay:.42s}.lgwrap .card>:nth-child(3){animation-delay:.49s}.lgwrap .card>:nth-child(4){animation-delay:.56s}.lgwrap .card>:nth-child(5){animation-delay:.63s}.lgwrap .card>:nth-child(6){animation-delay:.7s}.lgwrap .card>:nth-child(n+7){animation-delay:.77s}
+.lgleft{animation:slidel .9s cubic-bezier(.2,.9,.3,1) backwards}
+.lgleft .scene{transform:rotateY(calc(var(--px,0)*14deg)) rotateX(calc(var(--py,0)*-8deg));transition:transform .25s ease-out}
+.scene .tilt{animation:fl 5s ease-in-out infinite}
+.scene .sh{animation:shp 5s ease-in-out infinite}
+.brand{animation:rise .8s .25s cubic-bezier(.2,.9,.3,1) backwards}
+.spot{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle 300px at var(--mx,50%) var(--my,40%),#ffffff55,#ffffff14 45%,transparent 72%);opacity:0;transition:opacity .4s}
+.login:hover .spot{opacity:1}
+.lgwrap .card{transform:perspective(900px) rotateY(calc(var(--px,0)*-7deg)) rotateX(calc(var(--py,0)*5deg));transition:transform .25s ease-out}
+.lgleft .scene{transform:rotateY(calc(var(--px,0)*24deg)) rotateX(calc(var(--py,0)*-14deg))}
+.ptr{position:fixed;left:0;top:0;pointer-events:none;z-index:30;will-change:transform,opacity;animation:trail .95s ease-out forwards}
+@keyframes trail{from{opacity:.95;transform:translate(var(--x),var(--y)) scale(.5) rotate(var(--r))}to{opacity:0;transform:translate(var(--x),calc(var(--y) - 54px)) scale(1.3) rotate(calc(var(--r) + 28deg))}}
+.ptr.bs{animation-name:burst;animation-duration:.8s}
+@keyframes burst{from{opacity:1;transform:translate(var(--x),var(--y)) scale(.4)}to{opacity:0;transform:translate(calc(var(--x) + var(--dx)),calc(var(--y) + var(--dy))) scale(1.4) rotate(var(--r))}}
+@media(prefers-reduced-motion:reduce){*:not(.spin),*:not(.spin)::before,*:not(.spin)::after{animation:none!important;transition:none!important}}
 </style></head><body><div id="app"></div>
 <script>
 const SUPABASE_URL='https://rngylwfuhgmclexvfqiy.supabase.co', SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuZ3lsd2Z1aGdtY2xleHZmcWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MzUwMTUsImV4cCI6MjEwNjIxMTAxNX0.LbYlRCXCvPQOtwiid27ZNDs8eXVKSWvv8OOR1oBMPPk';
@@ -137,8 +192,8 @@ async function enter(id,silent){
  const{data}=await sb.from('profiles').select('*').eq('id',id).single();
  if(!data||data.status!='active'){if(!silent||data)alert(!data?'Acesso removido.':data.status=='pending'?'Cadastro aguardando aprovação do admin.':'Acesso bloqueado.');await sb.auth.signOut();me=null;return go()}
  me=data;labelEnabled=false;await load();go();rt();if(!silent)splash(data.name)}
-function go(){if(AV?.manut&&!(me?me.role=='admin':avAdm)){$('#app').innerHTML=manutV();document.querySelectorAll('.aviso-bar').forEach(e=>e.remove());return}$('#app').innerHTML=!me?loginV():me.role=='admin'?adminV():me.role=='prod'?prodV():me.role=='owner'?ownerV():resV();drawAviso()}
-function loginV(reg){return`<div class="login g">${Array.from({length:7},()=>`<span class="pw" style="left:${Math.random()*100}%;animation-duration:${6+Math.random()*8}s;animation-delay:-${Math.random()*10}s;font-size:${18+Math.random()*26}px">🐾</span>`).join('')}<div class="lgwrap"><div class="lgleft">${pk3d()}<div class="brand">Prime Seeler</div><div class="tag2">🐾 Revenda pet premium</div></div><div class="card"><h2 style="margin:0 0 4px">${reg?'Criar conta':'Bem-vindo de volta'}</h2><p class="mu" style="margin-top:0">${reg?'Crie sua conta. O admin precisa aprovar.':'Entre com seu e-mail.'}</p>
+function go(){if(AV?.manut&&!(me?me.role=='admin':avAdm)){$('#app').innerHTML=manutV();document.querySelectorAll('.aviso-bar').forEach(e=>e.remove());return}$('#app').innerHTML=!me?loginV():me.role=='admin'?adminV():me.role=='prod'?prodV():me.role=='owner'?ownerV():resV();drawAviso();fx()}
+function loginV(reg){return`<div class="login g"><div class="spot"></div>${Array.from({length:7},()=>`<span class="pw" style="left:${Math.random()*100}%;animation-duration:${6+Math.random()*8}s;animation-delay:-${Math.random()*10}s;font-size:${18+Math.random()*26}px">🐾</span>`).join('')}<div class="lgwrap"><div class="lgleft">${pk3d()}<div class="brand">Prime Seeler</div><div class="tag2">🐾 Revenda pet premium</div></div><div class="card"><h2 style="margin:0 0 4px">${reg?'Criar conta':'Bem-vindo de volta'}</h2><p class="mu" style="margin-top:0">${reg?'Crie sua conta. O admin precisa aprovar.':'Entre com seu e-mail.'}</p>
 ${reg?'<label>Seu nome</label><input id="n"><label>WhatsApp (com DDD)</label><input id="tel" type="tel" placeholder="11999999999">':''}<label>E-mail</label><input id="e" type="email"><label>Senha</label><input id="p" type="password" onkeydown="if(event.key=='Enter')this.closest('.card').querySelector('.btn.p').click()">
 <button class="btn p" style="width:100%" onclick="${reg?'signup()':'login()'}">${reg?'Cadastrar':'Entrar'}</button>
 <p style="text-align:center"><a href="#" onclick="$('#app').innerHTML=loginV(${!reg});return false" style="color:var(--ac)">${reg?'Já tenho conta':'Quero ser revendedor'}</a></p><p style="text-align:center;margin:14px 0 0;font-size:12px" class="mu">Feito por <b>João Miguel</b></p></div></div></div>`}
@@ -643,5 +698,28 @@ setInterval(()=>{if(me&&!$('#msgs')&&!document.querySelector('.modal')&&!['INPUT
 setInterval(async()=>{if(me&&(me.role=='admin'||me.role=='rev')&&$('#msgs')){await loadMsgs();drawMsgs();markRead(curConv())}},8000);
 let idle;const rst=()=>{clearTimeout(idle);if(me)idle=setTimeout(()=>{alert('Sessão encerrada por inatividade.');out()},30*60000)};
 ['click','keydown','touchstart','mousemove'].forEach(e=>addEventListener(e,rst,{passive:true}));
+/* ---------- EFEITOS (leves) ---------- */
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches,HV=matchMedia('(hover:hover) and (pointer:fine)').matches;
+let fxk='',fxt=0;
+function fx(){const app=document.getElementById('app');if(!app||RM)return;
+ const k=(me?me.role:'x')+'|'+[...document.querySelectorAll('.tab.on')].map(t=>t.textContent).join('/')+'|'+((document.querySelector('.lgwrap .card h2')||{}).textContent||'');
+ if(k===fxk)return;fxk=k;app.classList.remove('enter');void app.offsetWidth;app.classList.add('enter');countUp();
+ clearTimeout(fxt);fxt=setTimeout(()=>app.classList.remove('enter'),1500)}
+function countUp(){document.querySelectorAll('.stat b').forEach(b=>{const t=b.textContent.trim(),m=t.match(/^R\$\s*([\d.]+,\d{2})$/);let v,f;
+ if(m){v=parseFloat(m[1].replace(/\./g,'').replace(',','.'));f=x=>R(x)}else if(/^\d+$/.test(t)){v=+t;f=x=>Math.round(x)}else return;
+ if(!(v>0))return;const t0=performance.now(),st=n=>{const p=Math.min(1,(n-t0)/850),e=1-Math.pow(1-p,3);if(p<1){b.textContent=f(v*e);requestAnimationFrame(st)}else b.textContent=t};requestAnimationFrame(st)})}
+if(!RM){const mk=(x,y,bs,i)=>{const lg=document.querySelector('.login');if(!lg||document.querySelectorAll('.ptr').length>24)return;const s=document.createElement('span'),a=Math.random()*6.28;s.className='ptr'+(bs?' bs':'');s.textContent='🐾';
+  s.style.cssText=`--x:${x-10}px;--y:${y-10}px;--r:${(Math.random()*60-30).toFixed(0)}deg;--dx:${(Math.cos(a)*(40+Math.random()*30)).toFixed(0)}px;--dy:${(Math.sin(a)*(40+Math.random()*30)).toFixed(0)}px;font-size:${bs?18+Math.random()*10:14+Math.random()*10}px`;
+  document.body.appendChild(s);setTimeout(()=>s.remove(),1000)};
+ let lt=0;
+ if(HV)document.addEventListener('pointermove',e=>{const lg=document.querySelector('.login');if(!lg)return;lg.style.setProperty('--mx',e.clientX+'px');lg.style.setProperty('--my',e.clientY+'px');const n=performance.now();if(n-lt>75&&!e.target.closest('.card')){lt=n;mk(e.clientX,e.clientY,false)}},{passive:true});
+ document.addEventListener('pointerdown',e=>{if(!document.querySelector('.login')||e.target.closest('input,button,a'))return;for(let i=0;i<6;i++)mk(e.clientX,e.clientY,true)},{passive:true})}
+if(HV&&!RM){let cur=null,raf=0;
+ document.addEventListener('pointermove',e=>{const c=e.target.closest&&e.target.closest('.stat,.grid>.card');
+  if(cur&&cur!==c){cur.style.transform='';cur=null}
+  const lg=e.target.closest&&e.target.closest('.login');if(lg){lg.style.setProperty('--px',(e.clientX/innerWidth-.5).toFixed(3));lg.style.setProperty('--py',(e.clientY/innerHeight-.5).toFixed(3))}
+  if(!c||raf)return;cur=c;raf=requestAnimationFrame(()=>{raf=0;const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+   c.style.transform=`perspective(800px) rotateX(${(-y*7).toFixed(2)}deg) rotateY(${(x*9).toFixed(2)}deg) translateY(-4px)`;c.style.setProperty('--gx',((x+.5)*100).toFixed(0)+'%');c.style.setProperty('--gy',((y+.5)*100).toFixed(0)+'%')})},{passive:true});
+ document.addEventListener('pointerout',e=>{if(cur&&!cur.contains(e.relatedTarget)){cur.style.transform='';cur=null}},{passive:true})}
 boot();
 </script></body></html>
