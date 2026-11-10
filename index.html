@@ -57,8 +57,8 @@ input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--bd);bo
 @media(max-width:380px){.stats{grid-template-columns:1fr 1fr}.stat{font-size:12px}.stat b{font-size:19px}header .mu{display:none}}
 .logo-preview{width:100%;height:90px;border:1px dashed var(--bd);border-radius:12px;display:grid;place-items:center;background:var(--bg);overflow:hidden;margin:6px 0 10px}
 .logo-preview img{max-width:90%;max-height:80px;object-fit:contain}
-.scene{height:200px;display:grid;place-items:center;perspective:850px;position:relative;margin:-6px 0 2px}
-.tilt{transform-style:preserve-3d;transform:rotateX(-24deg) translateY(14px)}
+.scene{height:200px;display:grid;place-items:center;perspective:620px;position:relative;margin:-6px 0 2px}
+.tilt{transform-style:preserve-3d;transform:rotateX(-30deg) translateY(14px)}
 .pk{position:relative;width:96px;height:72px;transform-style:preserve-3d;animation:pkspin 18s linear infinite}
 @keyframes pkspin{to{transform:rotateY(360deg)}}
 .pk>div{position:absolute}
@@ -69,29 +69,48 @@ input,select,textarea{width:100%;padding:12px 13px;border:1px solid var(--bd);bo
 .pk .lw{left:0;top:0;width:96px;height:0;transform-style:preserve-3d;transform:translateZ(-48px);transform-origin:50% 0;animation:lidopen 9s ease-in-out infinite}
 .pk .lid{position:absolute;left:0;top:0;width:96px;height:96px;transform-origin:50% 0;transform:rotateX(90deg);background:linear-gradient(135deg,#e8b87a,#c28845);border:1px solid #8a5a26}
 .pk .lid::after{content:'';position:absolute;left:41px;top:0;width:14px;height:100%;background:#ffffff59}
-@keyframes lidopen{0%,12%{transform:translateZ(-48px) rotateX(0)}45%,68%{transform:translateZ(-48px) rotateX(115deg)}95%,100%{transform:translateZ(-48px) rotateX(0)}}
+@keyframes lidopen{0%,12%{transform:translateZ(-48px) rotateX(0)}45%,68%{transform:translateZ(-48px) rotateX(112deg)}95%,100%{transform:translateZ(-48px) rotateX(0)}}
 .sh{position:absolute;bottom:14px;width:120px;height:18px;border-radius:50%;background:#0000004d;filter:blur(8px)}
 .pop{position:absolute;left:50%;top:44%;font-size:38px;opacity:0;pointer-events:none;z-index:3;animation:pawpop 9s ease-in-out infinite}
 @keyframes pawpop{0%,25%{opacity:0;transform:translate(-50%,10px) scale(.3)}48%{opacity:1;transform:translate(-50%,-84px) scale(1.15) rotate(-6deg)}68%{opacity:1;transform:translate(-50%,-74px) scale(1) rotate(5deg)}85%,100%{opacity:0;transform:translate(-50%,10px) scale(.3)}}
-.scene .tilt{transform:rotateX(-24deg) translateY(16px) scale(1.25)}
+.scene .tilt{transform:rotateX(-30deg) translateY(16px) scale(1.25)}
 .pk{will-change:transform}
 .pk .rt{filter:brightness(.82)}.pk .lf{filter:brightness(.9)}.pk .bk{filter:brightness(.75)}
 .pk .fr{background:linear-gradient(180deg,#eab97a,#c48a4a)}
 .scene::before,.scene::after{content:'✨';position:absolute;font-size:18px;opacity:.8;animation:tw 3s ease-in-out infinite}.scene::before{left:14%;top:22%}.scene::after{right:14%;top:34%;animation-delay:-1.5s}
 @keyframes tw{50%{opacity:.15;transform:scale(.6)}}
 .login .card{backdrop-filter:none!important;background:color-mix(in srgb,var(--card) 96%,transparent)!important}
-@media(max-width:600px){.scene{height:215px}.scene .tilt{transform:rotateX(-24deg) translateY(22px) scale(1.4)}.pop{font-size:42px}.login{padding:14px}.login .card{padding:18px 16px;border-radius:24px}}
+@media(max-width:600px){.scene{height:215px}.scene .tilt{transform:rotateX(-30deg) translateY(22px) scale(1.4)}.pop{font-size:42px}.login{padding:14px}.login .card{padding:18px 16px;border-radius:24px}}
 .lgwrap{position:relative;z-index:1;width:100%;max-width:920px;display:grid;grid-template-columns:1.05fr 1fr;align-items:center;gap:30px}
 .lgwrap .card{max-width:none;padding:28px;border-radius:28px;box-shadow:0 30px 80px #0006,0 0 0 1px #ffffff40 inset}
 .lgleft{text-align:center;color:#fff}
-.lgleft .scene{height:270px}.lgleft .scene .tilt{transform:rotateX(-24deg) translateY(22px) scale(1.6)}
+.lgleft .scene{height:270px}.lgleft .scene .tilt{transform:rotateX(-30deg) translateY(22px) scale(1.6)}
 .brand{font-size:46px;font-weight:900;letter-spacing:-1.6px;line-height:1;background:linear-gradient(180deg,#fff,#ffd9ee);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 14px #0004)}
 .tag2{display:inline-block;margin-top:14px;padding:6px 15px;border-radius:99px;background:#ffffff2e;border:1px solid #ffffff59;font-weight:700;font-size:13px;letter-spacing:.5px}
-@media(max-width:760px){.lgwrap{grid-template-columns:1fr;gap:6px;max-width:420px}.lgleft .scene{height:215px}.lgleft .scene .tilt{transform:rotateX(-24deg) translateY(22px) scale(1.4)}.brand{font-size:36px}.lgwrap .card{padding:20px 16px;border-radius:24px}}
+@media(max-width:760px){.lgwrap{grid-template-columns:1fr;gap:6px;max-width:420px}.lgleft .scene{height:215px}.lgleft .scene .tilt{transform:rotateX(-30deg) translateY(22px) scale(1.4)}.brand{font-size:36px}.lgwrap .card{padding:20px 16px;border-radius:24px}}
 .pop{display:flex;flex-direction:column;align-items:center;line-height:1;white-space:nowrap}
 .pop b{font-size:40px;font-weight:900;letter-spacing:2px;color:#fff;text-shadow:0 3px 12px #0006,0 0 22px #ff6bb5}
 .pop span{font-size:28px;margin-top:2px;filter:drop-shadow(0 3px 6px #0005)}
 @media(max-width:760px){.pop b{font-size:34px}.pop span{font-size:24px}}
+.pk .f,.pk .fr{border:0;border-radius:0;background:repeating-linear-gradient(0deg,#0000 0 3px,#5a3a1a14 3px 4px),linear-gradient(180deg,#c99a5f,#b0803f);box-shadow:inset 0 0 16px #5a3a1a77,inset 0 0 0 1px #7a512655}
+.pk .f::after,.pk .f::before{display:none}
+.pk .f,.pk .fr{background:linear-gradient(90deg,#0000004d,#0000 7%,#0000 93%,#0000004d),linear-gradient(0deg,#3a220f55,#0000 32%),repeating-linear-gradient(0deg,#0000 0 3px,#5a3a1a14 3px 4px),linear-gradient(180deg,#cf9f62,#b3823f)}
+.pk .rt{filter:brightness(.7)}.pk .lf{filter:brightness(.85)}.pk .bk{filter:brightness(.7)}
+.pk .rm{left:0;top:-2.5px;width:96px;height:5px;background:linear-gradient(180deg,#e6be86,#cfa56b);box-shadow:inset 0 0 0 1px #8a5d2e66}
+.pk .rf{transform:translateZ(46px) rotateX(90deg)}.pk .rb{transform:translateZ(-46px) rotateX(90deg)}
+.pk .rl{transform:translateX(-46px) rotateY(90deg) rotateX(90deg)}.pk .rr{transform:translateX(46px) rotateY(90deg) rotateX(90deg)}
+.pk .iw{left:3px;top:0;width:90px;height:72px;background:linear-gradient(180deg,#9c6c36,#5a3a1a);box-shadow:inset 0 0 20px #000a}
+.pk .ib{transform:translateZ(-45px)}.pk .ifr{transform:translateZ(45px)}
+.pk .il{transform:rotateY(90deg) translateZ(-45px)}.pk .ir{transform:rotateY(90deg) translateZ(45px)}
+.pk .lid{border-bottom:2px solid #8a5d2e}
+.pk .lid{height:48px;border:0;border-radius:0;background:repeating-linear-gradient(90deg,#0000 0 3px,#5a3a1a12 3px 4px),linear-gradient(180deg,#d6a96e,#bf9055);box-shadow:inset 0 0 12px #5a3a1a55,inset 0 0 0 1px #7a512666}
+.pk .fl .lid{transform:rotateX(-90deg)}
+.pk .lid::before{content:none}
+.pk .lid::after{display:block;content:'';position:absolute;left:38px;top:0;width:20px;height:100%;background:linear-gradient(90deg,#d8bd88,#efdcb0 50%,#d8bd88);opacity:.92;box-shadow:0 0 3px #0002}
+.pk .lw.fl{transform:translateZ(48px);animation-name:lidopen2}
+@keyframes lidopen2{0%,12%{transform:translateZ(48px) rotateX(0)}45%,68%{transform:translateZ(48px) rotateX(-112deg)}95%,100%{transform:translateZ(48px) rotateX(0)}}
+.pk .bt{border:0;background:radial-gradient(circle,#8a6034,#4f3217 80%)}
+.sh{background:radial-gradient(ellipse,#0008,transparent 70%);filter:blur(4px)}
 @media(prefers-reduced-motion:reduce){.pk,.pk .lw,.pop,.scene::before,.scene::after{animation:none}.pop{opacity:1;transform:translate(-50%,-60px)}}
 </style></head><body><div id="app"></div>
 <script>
@@ -123,7 +142,7 @@ function loginV(reg){return`<div class="login g">${Array.from({length:7},()=>`<s
 ${reg?'<label>Seu nome</label><input id="n"><label>WhatsApp (com DDD)</label><input id="tel" type="tel" placeholder="11999999999">':''}<label>E-mail</label><input id="e" type="email"><label>Senha</label><input id="p" type="password" onkeydown="if(event.key=='Enter')this.closest('.card').querySelector('.btn.p').click()">
 <button class="btn p" style="width:100%" onclick="${reg?'signup()':'login()'}">${reg?'Cadastrar':'Entrar'}</button>
 <p style="text-align:center"><a href="#" onclick="$('#app').innerHTML=loginV(${!reg});return false" style="color:var(--ac)">${reg?'Já tenho conta':'Quero ser revendedor'}</a></p><p style="text-align:center;margin:14px 0 0;font-size:12px" class="mu">Feito por <b>João Miguel</b></p></div></div></div>`}
-const pk3d=()=>`<div class="scene" aria-hidden="true"><div class="sh"></div><div class="tilt"><div class="pk"><div class="f fr"></div><div class="f bk"></div><div class="f rt"></div><div class="f lf"></div><div class="bt"></div><div class="lw"><div class="lid"></div></div></div></div><div class="pop"><b>GV</b><span>🐾</span></div></div>`;
+const pk3d=()=>`<div class="scene" aria-hidden="true"><div class="sh"></div><div class="tilt"><div class="pk"><div class="f fr"></div><div class="f bk"></div><div class="f rt"></div><div class="f lf"></div><div class="bt"></div><div class="iw ib"></div><div class="iw ifr"></div><div class="iw il"></div><div class="iw ir"></div><div class="rm rf"></div><div class="rm rb"></div><div class="rm rl"></div><div class="rm rr"></div><div class="lw"><div class="lid"></div></div><div class="lw fl"><div class="lid"></div></div></div></div><div class="pop"><b>GV</b><span>🐾</span></div></div>`;
 let tries=0,lockUntil=0;
 async function login(){if(Date.now()<lockUntil)return alert('Muitas tentativas. Aguarde '+Math.ceil((lockUntil-Date.now())/1000)+'s.');const b=$('.login .btn.p'),h=b.innerHTML;b.disabled=true;b.innerHTML='<span class="spin"></span>Entrando...';
  const{data,error}=await sb.auth.signInWithPassword({email:$('#e').value.trim().toLowerCase(),password:$('#p').value});
@@ -367,16 +386,18 @@ function credHist(id){const u=U.find(x=>x.id==id);if(!u)return;const m=document.
  document.body.appendChild(m);m.querySelector('#hc').onclick=()=>m.remove()}
 /* ---------- ORDEM DE PEDIDO (soma por SKU) ---------- */
 let ordn='',ordg='dia';
+const hora=s=>new Date(s).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const unit=x=>x.q?x.t/x.q:0;
 function ordemRows(){const l=inR('ord').filter(o=>((o.who||'')+' '+(o.email||'')).toLowerCase().includes(ordn.trim().toLowerCase())),m={};
- l.forEach(o=>(o.items||[]).forEach(i=>{const pr=P.find(p=>p.id==i.id),sku=i.sku||skuOf(pr&&pr.vars.find(v=>v.n==i.v),i.c)||[i.name,i.v,i.c].filter(Boolean).join(' '),d=ordg=='dia'?day(o):'',k=d+'|'+sku,x=m[k]||(m[k]={d,sku,name:i.name||'',opt:[i.v,i.c].filter(Boolean).join(' / '),q:0,t:0,ped:new Set()});
-  x.q+=Number(i.q)||0;x.t+=(Number(i.p)||0)*(Number(i.q)||0);x.ped.add(o.id)}));
+ l.forEach(o=>(o.items||[]).forEach(i=>{const pr=P.find(p=>p.id==i.id),sku=i.sku||skuOf(pr&&pr.vars.find(v=>v.n==i.v),i.c)||[i.name,i.v,i.c].filter(Boolean).join(' '),d=ordg=='dia'?day(o):'',k=d+'|'+sku,x=m[k]||(m[k]={d,sku,name:i.name||'',opt:[i.v,i.c].filter(Boolean).join(' / '),q:0,t:0,ped:new Set(),hr:new Set()});
+  x.q+=Number(i.q)||0;x.t+=(Number(i.p)||0)*(Number(i.q)||0);x.ped.add(o.id);x.hr.add(hora(o.created_at))}));
  return Object.values(m).sort((a,b)=>b.d.localeCompare(a.d)||String(a.sku).localeCompare(String(b.sku),'pt-BR'))}
 function ordemV(){const r=ordemRows(),tq=r.reduce((a,x)=>a+x.q,0),tv=r.reduce((a,x)=>a+x.t,0);
  return `${fbar('ord')}<div class="card" style="margin-bottom:12px"><b>📋 Ordem de pedido</b><p class="mu" style="margin:6px 0">Soma a quantidade de cada SKU. Pedidos do mesmo dia com o mesmo produto viram uma linha só.</p><input id="ordn" placeholder="🔍 Filtrar por nome do revendedor..." value="${E(ordn)}" oninput="ordn=this.value;rl(this)"><div class="tabs" style="margin:0 0 8px"><button class="tab ${ordg=='dia'?'on':''}" onclick="ordg='dia';go()">📅 Por dia + SKU</button><button class="tab ${ordg=='sku'?'on':''}" onclick="ordg='sku';go()">🔖 Só por SKU (período todo)</button></div><button class="btn p" onclick="xlOrdem()">⬇️ Baixar Excel</button></div>
 <div class="stats"><div class="stat g"><b>${r.length}</b>Linhas</div><div class="stat" style="background:#f59e0b"><b>${tq}</b>Quantidade total</div><div class="stat" style="background:#16a34a"><b>${R(tv)}</b>Valor total</div></div>
-<div class="card"><div class="report-wrap"><table><thead><tr>${ordg=='dia'?'<th>Data</th>':''}<th>SKU</th><th>Produto</th><th>Qtd.</th><th>Valor</th><th>Pedidos</th></tr></thead><tbody>${r.map(x=>`<tr>${ordg=='dia'?`<td>${dt(x.d+'T12:00:00')}</td>`:''}<td><b>${E(x.sku)}</b></td><td>${E(x.name)}${x.opt?`<br><span class="mu">${E(x.opt)}</span>`:''}</td><td><b>${x.q}</b></td><td>${R(x.t)}</td><td class="mu">${[...x.ped].map(n=>'#'+n).join(', ')}</td></tr>`).join('')||`<tr><td colspan="${ordg=='dia'?6:5}">Nenhum pedido nesse período.</td></tr>`}</tbody></table></div></div>`}
+<div class="card"><div class="report-wrap"><table><thead><tr>${ordg=='dia'?'<th>Data</th>':''}<th>SKU</th><th>Produto</th><th>Qtd.</th><th>Valor unit.</th><th>Pedidos</th></tr></thead><tbody>${r.map(x=>`<tr>${ordg=='dia'?`<td>${dt(x.d+'T12:00:00')}<br><span class="mu" style="font-size:12px">🕒 ${[...x.hr].sort().join(' · ')}</span></td>`:''}<td><b>${E(x.sku)}</b></td><td>${E(x.name)}${x.opt?`<br><span class="mu">${E(x.opt)}</span>`:''}</td><td><b>${x.q}</b></td><td>${R(unit(x))}</td><td class="mu">${[...x.ped].map(n=>'#'+n).join(', ')}</td></tr>`).join('')||`<tr><td colspan="${ordg=='dia'?6:5}">Nenhum pedido nesse período.</td></tr>`}</tbody></table></div></div>`}
 function xlOrdem(){if(typeof XLSX=='undefined')return alert('Biblioteca do Excel não carregou. Recarregue a página.');const r=ordemRows();if(!r.length)return alert('Nada nesse período.');
- const rows=r.map(x=>({'Data':x.d?dt(x.d+'T12:00:00'):'Período todo','SKU':x.sku,'Produto':x.name,'Opção / cor':x.opt,'Quantidade':x.q,'Valor total':Math.round(x.t*100)/100,'Pedidos':[...x.ped].map(n=>'#'+n).join(', ')}));
+ const rows=r.map(x=>({'Data':x.d?dt(x.d+'T12:00:00'):'Período todo','Horário':x.d?[...x.hr].sort().join(' · '):'','SKU':x.sku,'Produto':x.name,'Opção / cor':x.opt,'Quantidade':x.q,'Valor unitário':Math.round(unit(x)*100)/100,'Valor total':Math.round(x.t*100)/100,'Pedidos':[...x.ped].map(n=>'#'+n).join(', ')}));
  rows.push({'SKU':'TOTAL','Quantidade':r.reduce((a,x)=>a+x.q,0),'Valor total':Math.round(r.reduce((a,x)=>a+x.t,0)*100)/100});
  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),'Ordem de pedido');XLSX.writeFile(wb,'ordem_pedido.xlsx')}
 function ownerV(){return hdr('Dono 👑')+`<div class="wrap"><div class="tabs"><button class="tab ${otab=='dash'?'on':''}" onclick="otab='dash';go()">📊 Painel</button><button class="tab ${otab=='ped'?'on':''}" onclick="otab='ped';go()">🧾 Pedidos</button><button class="tab ${otab=='ordem'?'on':''}" onclick="otab='ordem';go()">📋 Ordem de pedido</button></div>${otab=='dash'?dashV():otab=='ordem'?ordemV():ordersV(false,true)}</div>`}
