@@ -125,19 +125,19 @@ html{scroll-behavior:smooth}
 @keyframes orb{to{transform:translate3d(8vmax,6vmax,0) scale(1.15)}}
 @keyframes ln{to{background-position:200% 0}}
 #app.enter header{animation:hdrin .55s cubic-bezier(.2,.9,.3,1) backwards}
-#app.enter .wrap :is(.card,.stat,.ord){animation:rise .65s cubic-bezier(.2,.9,.3,1) backwards;transform-origin:50% 0}
-#app.enter .wrap :is(.card,.stat,.ord):nth-child(2){animation-delay:.06s}
-#app.enter .wrap :is(.card,.stat,.ord):nth-child(3){animation-delay:.12s}
-#app.enter .wrap :is(.card,.stat,.ord):nth-child(4){animation-delay:.18s}
-#app.enter .wrap :is(.card,.stat,.ord):nth-child(5){animation-delay:.24s}
-#app.enter .wrap :is(.card,.stat,.ord):nth-child(6){animation-delay:.3s}
-#app.enter .wrap :is(.card,.stat,.ord):nth-child(n+7){animation-delay:.36s}
+#app.enter .wrap :is(.card,.stat):nth-child(-n+12){animation:rise .65s cubic-bezier(.2,.9,.3,1) backwards;transform-origin:50% 0}
+#app.enter .wrap :is(.card,.stat):nth-child(2){animation-delay:.06s}
+#app.enter .wrap :is(.card,.stat):nth-child(3){animation-delay:.12s}
+#app.enter .wrap :is(.card,.stat):nth-child(4){animation-delay:.18s}
+#app.enter .wrap :is(.card,.stat):nth-child(5){animation-delay:.24s}
+#app.enter .wrap :is(.card,.stat):nth-child(6){animation-delay:.3s}
+#app.enter .wrap :is(.card,.stat):nth-child(n+7){animation-delay:.36s}
 #app.enter .tab{animation:rise .5s cubic-bezier(.2,.9,.3,1) backwards}
 .modal{animation:fadein .25s ease-out}
 .modal>div{animation:sheet .5s cubic-bezier(.2,.9,.3,1) backwards;transform-origin:50% 100%}
 header{position:sticky}
 header::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--ac),var(--ac2),var(--ac));background-size:200% 100%;animation:ln 7s linear infinite;opacity:.75}
-.stat,.grid>.card{position:relative;transition:transform .22s ease-out,box-shadow .22s;will-change:transform}
+.stat,.grid>.card{position:relative;transition:transform .22s ease-out,box-shadow .22s}
 .stat::after,.grid>.card::after{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at var(--gx,50%) var(--gy,0%),#ffffff30,transparent 58%);opacity:0;transition:opacity .25s;pointer-events:none}
 .stat:hover::after,.grid>.card:hover::after{opacity:1}
 .stat:hover{box-shadow:0 22px 44px #20243d33}
@@ -167,13 +167,14 @@ tbody tr{transition:background .15s}tbody tr:hover{background:color-mix(in srgb,
 .ptr.bs{animation-name:burst;animation-duration:.8s}
 @keyframes burst{from{opacity:1;transform:translate(var(--x),var(--y)) scale(.4)}to{opacity:0;transform:translate(calc(var(--x) + var(--dx)),calc(var(--y) + var(--dy))) scale(1.4) rotate(var(--r))}}
 @media(prefers-reduced-motion:reduce){*:not(.spin),*:not(.spin)::before,*:not(.spin)::after{animation:none!important;transition:none!important}}
+.ord{content-visibility:auto;contain-intrinsic-size:auto 240px}
 </style></head><body><div id="app"></div>
 <script>
 const SUPABASE_URL='https://rngylwfuhgmclexvfqiy.supabase.co', SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJuZ3lsd2Z1aGdtY2xleHZmcWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2MzUwMTUsImV4cCI6MjEwNjIxMTAxNX0.LbYlRCXCvPQOtwiid27ZNDs8eXVKSWvv8OOR1oBMPPk';
 const $=s=>document.querySelector(s),R=n=>'R$ '+Number(n).toFixed(2).replace('.',','),E=s=>String(s??'').replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const okImg=u=>typeof u=='string'&&u.startsWith(SUPABASE_URL+'/storage/')?u:'';
-let busyUntil=0,me=null,P=[],U=[],O=[],CR=[],cart=[],cat='Todos',q='',atab='dash',pfile=null,oemail='',ost='todos';
+let ordLim=30,ordKey='',busyUntil=0,me=null,P=[],U=[],O=[],CR=[],cart=[],cat='Todos',q='',atab='dash',pfile=null,oemail='',ost='todos';
 const ORDER_LABEL_TAG='__ORDER_LABELS__';let labelEnabled=false;
 const isAdmin=()=>!!(me&&me.role=='admin');
 const err=e=>{if(e){alert(e.message);return true}};
@@ -342,7 +343,8 @@ const itL=i=>{const k=i.sku||skuOf((P.find(p=>p.id==i.id)||{vars:[]}).vars.find(
 const ST={novo:'🆕 Novo',producao:'🔧 Em produção',concluido:'📦 Pode vir buscar'};
 async function abrirArq(p){const w=window.open('','_blank');const r=await sb.storage.from('pedidos').createSignedUrl(p,3600);if(err(r.error)){if(w)w.close();return}if(w)w.location=r.data.signedUrl;else window.open(r.data.signedUrl,'_blank')}
 const canEst=()=>me&&(me.role=='admin'||me.role=='prod');
-const itE=(o,i,k)=>`<div style="padding:4px 0"><label style="display:flex;align-items:center;gap:8px;${canEst()?'cursor:pointer':''}"><input type="checkbox" ${i.est?'checked':''} ${canEst()?'':'disabled'} onchange="setEst(${o.id},${k},this.checked)" style="width:18px;height:18px;margin:0;padding:0;flex:none"><span>${itL(i)}</span>${i.est?'<span class="tag ok">✓ em estoque</span>':''}</label>${i.texto?`<div style="margin:6px 0 4px"><button class="btn s" onclick="copiarEt(${o.id},${k})">📋 Copiar texto da etiqueta</button><details style="margin-top:6px"><summary style="cursor:pointer;font-size:12px;color:var(--mu)">Expandir texto</summary><pre style="margin:6px 0 0;padding:10px;border-radius:12px;background:var(--bg);white-space:pre-wrap;font:13px/1.45 ui-monospace,Menlo,monospace;color:var(--tx)">${E(i.texto)}</pre></details></div>`:''}</div>`;
+const itE=(o,i,k)=>`<div style="padding:4px 0"><label style="display:flex;align-items:center;gap:8px;${canEst()?'cursor:pointer':''}"><input type="checkbox" ${i.est?'checked':''} ${canEst()?'':'disabled'} onchange="setEst(${o.id},${k},this.checked)" style="width:18px;height:18px;margin:0;padding:0;flex:none"><span>${itL(i)}</span>${i.est?'<span class="tag ok">✓ em estoque</span>':''}</label>${i.texto?`<div style="margin:6px 0 4px"><button class="btn s" onclick="copiarEt(${o.id},${k})">📋 Copiar texto da etiqueta</button><details style="margin-top:6px" ontoggle="lzEt(this,${o.id},${k})"><summary style="cursor:pointer;font-size:12px;color:var(--mu)">Expandir texto</summary><pre style="margin:6px 0 0;padding:10px;border-radius:12px;background:var(--bg);white-space:pre-wrap;font:13px/1.45 ui-monospace,Menlo,monospace;color:var(--tx)"></pre></details></div>`:''}</div>`;
+function lzEt(d,id,k){if(!d.open)return;const pre=d.querySelector("pre");if(!pre||pre.dataset.f)return;const t=(O.find(x=>x.id==id)?.items[k]?.texto)||"";pre.textContent=t;pre.dataset.f="1"}
 function copiarEt(id,k){const t=(O.find(x=>x.id==id)?.items[k]?.texto)||'';if(!t)return;const ok=()=>alert('Texto da etiqueta copiado! ✅');const fb=()=>{const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.opacity='0';document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(e){}a.remove();ok()};if(navigator.clipboard)navigator.clipboard.writeText(t).then(ok,fb);else fb()}
 async function setEst(id,k,v){const r=await sb.rpc('set_item_estoque',{p_order:id,p_idx:k,p_val:v});if(err(r.error)){refresh();return}const o=O.find(x=>x.id==id);if(o&&o.items[k])o.items[k].est=v;const y=window.scrollY;go();window.scrollTo(0,y)}
 const stTag=s=>`<span class="tag ${s=='concluido'?'ok':s=='producao'?'w':'b'}">${ST[s]||ST.novo}</span>`;
@@ -630,10 +632,10 @@ function ordersV(adm,ro){
  return `${fbar('ped')}${adm||ro?xlCard():''}<input id="fe" placeholder="🔍 Filtrar por e-mail..." value="${E(oemail)}" oninput="oemail=this.value;rl(this)">
 <div class="tabs">${['todos','novo','producao','concluido'].map(s=>`<button class="tab ${ost==s?'on':''}" onclick="ost='${s}';go()">${s=='todos'?'Todos':ST[s]} (${cnt(s)})</button>`).join('')}</div>
 <div class="tabs">${['todos','manha','tarde','qualquer'].map(k=>`<button class="tab ${opk==k?'on':''}" onclick="opk='${k}';go()">${k=='todos'?'🕒 Todos os horários':PKL[k]}</button>`).join('')}</div>
-${l.map(o=>`<div class="ord ${o.status}"><div class="row" style="border:0;padding:0"><div><b style="font-size:16px">${E(o.who)}</b> ${stTag(o.status)} ${pkTag(o)}<br><span class="mu" style="font-size:12px">✉️ ${E(o.email||'—')} · #${o.id}</span><br><span style="font-size:13px;font-weight:600">🕒 ${dt(o.created_at)} às ${tm(o.created_at)} <span class="mu" style="font-weight:400">(${ago(o.created_at)})</span>${o.status!='concluido'&&Date.now()-new Date(o.created_at)>108e5?' <span class="tag w">⚠️ aguardando</span>':''}</span></div><b class="price">${R(o.total)}</b></div>
+${(()=>{const key=ost+'|'+opk+'|'+oemail+'|'+l.length;if(key!==ordKey){ordKey=key;ordLim=30}return ''})()}${l.slice(0,ordLim).map(o=>`<div class="ord ${o.status}"><div class="row" style="border:0;padding:0"><div><b style="font-size:16px">${E(o.who)}</b> ${stTag(o.status)} ${pkTag(o)}<br><span class="mu" style="font-size:12px">✉️ ${E(o.email||'—')} · #${o.id}</span><br><span style="font-size:13px;font-weight:600">🕒 ${dt(o.created_at)} às ${tm(o.created_at)} <span class="mu" style="font-weight:400">(${ago(o.created_at)})</span>${o.status!='concluido'&&Date.now()-new Date(o.created_at)>108e5?' <span class="tag w">⚠️ aguardando</span>':''}</span></div><b class="price">${R(o.total)}</b></div>
 <div class="steps">${[1,2,3].map(n=>`<i class="${n<=stp(o.status)?'on':''}"></i>`).join('')}</div>
 <div class="mu" style="font-size:13px">${o.items.map((i,k)=>itE(o,i,k)).join('')}</div>
-${noteBox(o)}<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${ro?'':adm?`<select onchange="setSt(${o.id},this.value)" style="width:auto;margin:0">${Object.keys(ST).map(k=>`<option value="${k}" ${o.status==k?'selected':''}>${ST[k]}</option>`).join('')}</select>${histBtn(o)}<button class="btn s" onclick="oedit(${o.id})">✏️ Editar</button><button class="btn s d" onclick="odel(${o.id})">🗑 Excluir</button>`:`${o.status!='producao'?`<button class="btn" onclick="setSt(${o.id},'producao')">🔧 Em produção</button>`:''}${o.status!='concluido'?`<button class="btn p" onclick="setSt(${o.id},'concluido')">📦 Pode vir buscar</button>`:''}`}${o.status=='concluido'?waBtn(o):''}</div></div>`).join('')||'<div class="card mu" style="text-align:center">Nenhum pedido encontrado.</div>'}`}
+${noteBox(o)}<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${ro?'':adm?`<select onchange="setSt(${o.id},this.value)" style="width:auto;margin:0">${Object.keys(ST).map(k=>`<option value="${k}" ${o.status==k?'selected':''}>${ST[k]}</option>`).join('')}</select>${histBtn(o)}<button class="btn s" onclick="oedit(${o.id})">✏️ Editar</button><button class="btn s d" onclick="odel(${o.id})">🗑 Excluir</button>`:`${o.status!='producao'?`<button class="btn" onclick="setSt(${o.id},'producao')">🔧 Em produção</button>`:''}${o.status!='concluido'?`<button class="btn p" onclick="setSt(${o.id},'concluido')">📦 Pode vir buscar</button>`:''}`}${o.status=='concluido'?waBtn(o):''}</div></div>`).join('')||'<div class="card mu" style="text-align:center">Nenhum pedido encontrado.</div>'}${l.length>ordLim?`<div style="text-align:center;margin:6px 0 20px"><p class="mu" style="font-size:13px">Mostrando ${ordLim} de ${l.length} pedidos</p><button class="btn p" onclick="ordLim+=30;go()">Mostrar mais 30</button></div>`:''}`}
 function oedit(id){
  const o=O.find(x=>x.id==id);if(!o)return alert('Pedido não encontrado. Atualize a tela.');
  if(document.querySelector('.modal'))return;
